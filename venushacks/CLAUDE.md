@@ -1,4 +1,4 @@
-# Maternal Heart App - Project Context
+# Kardia - Project Context
 
 ## Project Overview
 We are building a React Native mobile app using Expo (SDK 54) to combat maternal mortality. The app helps pregnant and postpartum mothers track routine health metrics (blood pressure, glucose, A1C) and translates those numbers into actionable, long-term cardiovascular health insights. 
