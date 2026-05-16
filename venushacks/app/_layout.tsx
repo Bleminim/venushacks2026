@@ -12,6 +12,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useColorScheme } from '@/components/useColorScheme';
 import { HealthProvider } from '@/context/HealthContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { CommunityProvider } from '@/context/CommunityContext';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -58,7 +59,9 @@ export default function RootLayout() {
     >
       <AuthProvider>
         <HealthProvider>
-          <InitialLayout />
+          <CommunityProvider>
+            <InitialLayout />
+          </CommunityProvider>
         </HealthProvider>
       </AuthProvider>
     </ClerkProvider>
@@ -100,9 +103,10 @@ function InitialLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal"  options={{ presentation: 'modal' }} />
+        <Stack.Screen name="(auth)"      options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)"      options={{ headerShown: false }} />
+        <Stack.Screen name="modal"       options={{ presentation: 'modal' }} />
+        <Stack.Screen name="thread/[id]" options={{ headerShown: false, animation: 'slide_from_right' }} />
       </Stack>
     </ThemeProvider>
   );
