@@ -28,6 +28,7 @@ export default function SetupScreen() {
   const [lastName,     setLastName]     = useState('');
   const [stage,        setStage]        = useState<Stage>('Pregnant');
   const [imageUri,     setImageUri]     = useState<string | null>(null);
+  const [imageBase64,  setImageBase64]  = useState<string | null>(null);
   const [loading,      setLoading]      = useState(false);
 
   const isValid = firstName.trim().length > 0 && lastName.trim().length > 0;
@@ -44,10 +45,12 @@ export default function SetupScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      base64: true,
     });
 
     if (!result.canceled && result.assets[0]) {
       setImageUri(result.assets[0].uri);
+      setImageBase64(`data:${result.assets[0].mimeType ?? 'image/jpeg'};base64,${result.assets[0].base64}`);
     }
   }
 
@@ -64,12 +67,11 @@ export default function SetupScreen() {
       });
 
       // Upload profile image if one was selected
-      if (imageUri) {
+      if (imageBase64) {
         try {
-          const response = await fetch(imageUri);
-          const blob     = await response.blob();
-          await user.setProfileImage({ file: blob });
-        } catch {
+          await user.setProfileImage({ file: imageBase64 });
+        } catch (err) {
+          console.error("Failed to upload image:", err);
           // Image upload failure is non-fatal — name was already saved
         }
       }

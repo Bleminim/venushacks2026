@@ -25,6 +25,7 @@ export default function EditProfileScreen() {
   const [firstName,    setFirstName]    = useState('');
   const [lastName,     setLastName]     = useState('');
   const [imageUri,     setImageUri]     = useState<string | null>(null);
+  const [imageBase64,  setImageBase64]  = useState<string | null>(null);
   const [imageChanged, setImageChanged] = useState(false);
   const [loading,      setLoading]      = useState(false);
 
@@ -51,9 +52,11 @@ export default function EditProfileScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      base64: true,
     });
     if (!result.canceled && result.assets[0]) {
       setImageUri(result.assets[0].uri);
+      setImageBase64(`data:${result.assets[0].mimeType ?? 'image/jpeg'};base64,${result.assets[0].base64}`);
       setImageChanged(true);
     }
   }
@@ -68,13 +71,12 @@ export default function EditProfileScreen() {
         lastName:  lastName.trim(),
       });
 
-      if (imageChanged && imageUri) {
+      if (imageChanged && imageBase64) {
         try {
-          const response = await fetch(imageUri);
-          const blob     = await response.blob();
-          await user.setProfileImage({ file: blob });
+          await user.setProfileImage({ file: imageBase64 });
           await user.reload(); // flush Clerk cache so imageUrl updates immediately
-        } catch {
+        } catch (err) {
+          console.error("Failed to upload image:", err);
           // Image upload is non-fatal; name was already saved
         }
       }
