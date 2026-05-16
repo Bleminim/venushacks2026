@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
-import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 
 import { useColorScheme } from '@/components/useColorScheme';
@@ -76,21 +76,29 @@ export default function RootLayout() {
 
 function InitialLayout() {
   const { isSignedIn, isLoaded } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
-  const colorScheme = useColorScheme();
+  const { user }                 = useUser();
+  const segments                 = useSegments();
+  const router                   = useRouter();
+  const colorScheme              = useColorScheme();
 
   useEffect(() => {
     if (!isLoaded) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup  = segments[0] === '(auth)';
+    const inAppGroup   = segments[0] === '(app)';   // setup lives here
+    const needsSetup   = isSignedIn && !user?.firstName;
 
     if (!isSignedIn && !inAuthGroup) {
+      // Signed-out user outside auth screens → send to welcome
       router.replace('/(auth)/welcome');
-    } else if (isSignedIn && inAuthGroup) {
+    } else if (needsSetup && !inAppGroup) {
+      // Signed-in but no name yet → send to onboarding
+      router.replace('/(app)/setup');
+    } else if (isSignedIn && !needsSetup && (inAuthGroup || inAppGroup)) {
+      // Fully set-up user on auth/setup screens → send to dashboard
       router.replace('/(tabs)');
     }
-  }, [isSignedIn, isLoaded, segments]);
+  }, [isSignedIn, isLoaded, user?.firstName, segments]);
 
   if (!isLoaded) {
     return (
@@ -104,6 +112,7 @@ function InitialLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(auth)"      options={{ headerShown: false }} />
+        <Stack.Screen name="(app)"       options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)"      options={{ headerShown: false }} />
         <Stack.Screen name="modal"       options={{ presentation: 'modal' }} />
         <Stack.Screen name="thread/[id]" options={{ headerShown: false, animation: 'slide_from_right' }} />
