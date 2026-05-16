@@ -19,4 +19,8 @@ The app utilizes a standard bottom tab navigation (`app/(tabs)/`).
 4.  **Community - `community.tsx`**: A Reddit-style forum. Includes a categorized feed (e.g., "Postpartum BP") and the ability to attach anonymized health charts to posts.
 5.  **Profile - `profile.tsx`**: User settings, anonymity toggles, and an export button to generate PDF/data reports for OB/GYN visits.
 
+## Authentication & State Management
+* **Authentication:** We use Clerk for React Native (`@clerk/clerk-expo`). Supported providers: Email, Phone, Google, Facebook, Apple. The root layout (`app/_layout.tsx`) must handle the ClerkProvider wrapping and route protection.
+* **Global State:** We use the React Context API (`context/HealthContext.tsx`) to manage user health data. All health logs (BP, Glucose, A1C) must be stored in this context so the Home, Log, and Insights tabs share the exact same data source in real-time. Do not use local state for the main data array.
+
 @AGENTS.md
