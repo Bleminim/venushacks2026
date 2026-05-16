@@ -5,8 +5,10 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  Image,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useRouter } from 'expo-router';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -38,14 +40,15 @@ function SettingsRow({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
+  const router      = useRouter();
   const { signOut } = useAuth();
   const { user }    = useUser();
 
-  const firstName = user?.firstName ?? '';
-  const lastName  = user?.lastName  ?? '';
-  const fullName  = [firstName, lastName].filter(Boolean).join(' ') || 'Your Name';
-  const email     = user?.primaryEmailAddress?.emailAddress ?? '';
-  const initials  = [firstName[0], lastName[0]].filter(Boolean).join('').toUpperCase() || '?';
+  const firstName  = user?.firstName ?? '';
+  const lastName   = user?.lastName  ?? '';
+  const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Your Name';
+  const email      = user?.primaryEmailAddress?.emailAddress ?? '';
+  const initials   = [firstName[0], lastName[0]].filter(Boolean).join('').toUpperCase();
 
   function comingSoon(feature: string) {
     Alert.alert(feature, 'This feature is coming in a future update.', [{ text: 'OK' }]);
@@ -80,14 +83,22 @@ export default function ProfileScreen() {
 
       {/* ── Profile card ── */}
       <View style={[styles.card, styles.profileCard]}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials}</Text>
-        </View>
+        {user?.imageUrl ? (
+          <Image source={{ uri: user.imageUrl }} style={styles.avatarImage} />
+        ) : initials ? (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+        ) : (
+          <View style={styles.avatar}>
+            <FontAwesome name="user" size={24} color="#C5BAD0" />
+          </View>
+        )}
         <View style={styles.profileInfo}>
           <Text style={styles.profileName}>{fullName}</Text>
           <Text style={styles.profileEmail} numberOfLines={1}>{email}</Text>
         </View>
-        <TouchableOpacity onPress={() => comingSoon('Edit Profile')}>
+        <TouchableOpacity onPress={() => router.push('/edit-profile')}>
           <Text style={styles.editLink}>Edit</Text>
         </TouchableOpacity>
       </View>
@@ -178,6 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarImage:  { width: 52, height: 52, borderRadius: 26 },
   avatarText:   { fontSize: 18, fontWeight: '700', color: PURPLE },
   profileInfo:  { flex: 1, marginLeft: 14 },
   profileName:  { fontSize: 16, fontWeight: '700', color: '#1A1A2E', marginBottom: 3 },

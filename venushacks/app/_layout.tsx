@@ -114,8 +114,9 @@ function InitialLayout() {
         <Stack.Screen name="(auth)"      options={{ headerShown: false }} />
         <Stack.Screen name="(app)"       options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)"      options={{ headerShown: false }} />
-        <Stack.Screen name="modal"       options={{ presentation: 'modal' }} />
-        <Stack.Screen name="thread/[id]" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="modal"        options={{ presentation: 'modal' }} />
+        <Stack.Screen name="edit-profile" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="thread/[id]"  options={{ headerShown: false, animation: 'slide_from_right' }} />
       </Stack>
     </ThemeProvider>
   );
