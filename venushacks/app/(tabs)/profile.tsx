@@ -1,28 +1,243 @@
-import { StyleSheet } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+} from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 
-export default function ProfileScreen() {
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SettingsRow({
+  icon, label, onPress, isLast,
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  isLast?: boolean;
+}) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>Settings, anonymity toggles, and PDF export coming soon</Text>
-    </View>
+    <>
+      <TouchableOpacity style={styles.settingsRow} onPress={onPress} activeOpacity={0.7}>
+        <View style={styles.settingsLeft}>
+          <View style={styles.iconWrap}>
+            <FontAwesome name={icon as any} size={15} color="#9B59B6" />
+          </View>
+          <Text style={styles.settingsLabel}>{label}</Text>
+        </View>
+        <FontAwesome name="chevron-right" size={11} color="#C5BAD0" />
+      </TouchableOpacity>
+      {!isLast && <View style={styles.rowDivider} />}
+    </>
   );
 }
 
+// ─── Screen ───────────────────────────────────────────────────────────────────
+
+export default function ProfileScreen() {
+  const { signOut } = useAuth();
+  const { user }    = useUser();
+
+  const firstName = user?.firstName ?? '';
+  const lastName  = user?.lastName  ?? '';
+  const fullName  = [firstName, lastName].filter(Boolean).join(' ') || 'Your Name';
+  const email     = user?.primaryEmailAddress?.emailAddress ?? '';
+  const initials  = [firstName[0], lastName[0]].filter(Boolean).join('').toUpperCase() || '?';
+
+  function comingSoon(feature: string) {
+    Alert.alert(feature, 'This feature is coming in a future update.', [{ text: 'OK' }]);
+  }
+
+  async function handleSignOut() {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          try { await signOut(); }
+          catch { Alert.alert('Error', 'Could not sign out. Please try again.'); }
+        },
+      },
+    ]);
+  }
+
+  return (
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        <Text style={styles.headerEyebrow}>Account</Text>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerSub}>Manage your settings and health data.</Text>
+      </View>
+
+      {/* ── Profile card ── */}
+      <View style={[styles.card, styles.profileCard]}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initials}</Text>
+        </View>
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>{fullName}</Text>
+          <Text style={styles.profileEmail} numberOfLines={1}>{email}</Text>
+        </View>
+        <TouchableOpacity onPress={() => comingSoon('Edit Profile')}>
+          <Text style={styles.editLink}>Edit</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ── Settings ── */}
+      <Text style={styles.sectionLabel}>Settings</Text>
+      <View style={styles.card}>
+        <SettingsRow
+          icon="lock"
+          label="Privacy Settings"
+          onPress={() => comingSoon('Privacy Settings')}
+        />
+        <SettingsRow
+          icon="file-text-o"
+          label="Export Health Data"
+          onPress={() => comingSoon('Export Health Data')}
+        />
+        <SettingsRow
+          icon="bell-o"
+          label="Notifications"
+          onPress={() => comingSoon('Notifications')}
+        />
+        <SettingsRow
+          icon="question-circle-o"
+          label="Help & Support"
+          onPress={() => comingSoon('Help & Support')}
+          isLast
+        />
+      </View>
+
+      {/* ── Data protection badge ── */}
+      <View style={styles.badge}>
+        <FontAwesome name="shield" size={13} color="#6C3483" />
+        <Text style={styles.badgeText}>
+          Your health data is protected and encrypted.
+        </Text>
+      </View>
+
+      {/* ── Sign out ── */}
+      <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut} activeOpacity={0.85}>
+        <FontAwesome name="sign-out" size={16} color="#fff" />
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.version}>Kardia · v1.0.0</Text>
+    </ScrollView>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const PURPLE = '#9B59B6';
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scroll:    { flex: 1, backgroundColor: '#F8F4F9' },
+  container: { padding: 20, paddingBottom: 48 },
+
+  // Header — matches Home & Log pattern exactly
+  header: { marginBottom: 20, marginTop: 4 },
+  headerEyebrow: { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 },
+  headerTitle:   { fontSize: 26, fontWeight: '700', color: '#1A1A2E', marginTop: 2 },
+  headerSub:     { fontSize: 13, color: '#666', marginTop: 4, lineHeight: 19 },
+
+  // Cards — matches Home & Log card pattern exactly
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+
+  // Profile card
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 18,
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#E8D5F5',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  avatarText:   { fontSize: 18, fontWeight: '700', color: PURPLE },
+  profileInfo:  { flex: 1, marginLeft: 14 },
+  profileName:  { fontSize: 16, fontWeight: '700', color: '#1A1A2E', marginBottom: 3 },
+  profileEmail: { fontSize: 13, color: '#888' },
+  editLink:     { fontSize: 13, fontWeight: '600', color: PURPLE },
+
+  // Section label — matches Log screen sectionLabel
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#444',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 8,
   },
-  subtitle: {
-    marginTop: 8,
-    fontSize: 14,
-    opacity: 0.6,
+
+  // Settings rows
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 13,
   },
+  settingsLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  iconWrap:     { width: 28, alignItems: 'center' },
+  settingsLabel: { fontSize: 15, color: '#1A1A2E', fontWeight: '500' },
+  rowDivider:   { height: 1, backgroundColor: '#F0EBF5', marginLeft: 42 },
+
+  // Badge
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F5EEF8',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D7BDE2',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    marginBottom: 14,
+  },
+  badgeText: { flex: 1, fontSize: 12, color: '#6C3483', fontWeight: '500', lineHeight: 17 },
+
+  // Sign out
+  signOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#C0392B',
+    borderRadius: 14,
+    height: 52,
+    marginBottom: 24,
+    shadowColor: '#C0392B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  signOutText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+
+  version: { textAlign: 'center', fontSize: 11, color: '#ccc' },
 });
