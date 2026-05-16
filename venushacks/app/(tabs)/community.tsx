@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
@@ -44,7 +45,16 @@ function PostCard({ post }: { post: Post }) {
       {/* Top row: category + author */}
       <View style={styles.cardMeta}>
         <CategoryPill label={post.category} />
-        <Text style={styles.author}>{post.authorName}</Text>
+        <View style={styles.authorWrap}>
+          {post.authorImage ? (
+            <Image source={{ uri: post.authorImage }} style={styles.authorAvatar} />
+          ) : (
+            <View style={styles.authorAvatarPlaceholder}>
+              <Text style={styles.authorAvatarText}>{post.authorName[0].toUpperCase()}</Text>
+            </View>
+          )}
+          <Text style={styles.author}>{post.authorName}</Text>
+        </View>
       </View>
 
       {/* Title */}
@@ -149,6 +159,13 @@ const styles = StyleSheet.create({
   },
   pillText: { fontSize: 11, fontWeight: '700' },
 
+  authorWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  authorAvatar: { width: 24, height: 24, borderRadius: 12 },
+  authorAvatarPlaceholder: {
+    width: 24, height: 24, borderRadius: 12, backgroundColor: '#E8D5F5',
+    alignItems: 'center', justifyContent: 'center'
+  },
+  authorAvatarText: { fontSize: 10, fontWeight: '700', color: '#9B59B6' },
   author: { fontSize: 12, color: '#aaa', fontWeight: '500' },
 
   postTitle: {

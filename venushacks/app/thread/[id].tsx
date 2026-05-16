@@ -8,9 +8,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useUser } from '@clerk/clerk-expo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useCommunity, type Comment } from '@/context/CommunityContext';
@@ -21,11 +23,15 @@ function CommentRow({ comment, isLast }: { comment: Comment; isLast: boolean }) 
   return (
     <>
       <View style={styles.commentRow}>
-        <View style={styles.commentAvatar}>
-          <Text style={styles.commentAvatarText}>
-            {comment.author[0].toUpperCase()}
-          </Text>
-        </View>
+        {comment.authorImage ? (
+          <Image source={{ uri: comment.authorImage }} style={styles.commentAvatar} />
+        ) : (
+          <View style={styles.commentAvatar}>
+            <Text style={styles.commentAvatarText}>
+              {comment.author[0].toUpperCase()}
+            </Text>
+          </View>
+        )}
         <View style={styles.commentBody}>
           <View style={styles.commentMeta}>
             <Text style={styles.commentAuthor}>{comment.author}</Text>
@@ -44,6 +50,7 @@ function CommentRow({ comment, isLast }: { comment: Comment; isLast: boolean }) 
 export default function ThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router  = useRouter();
+  const { user } = useUser();
   const { posts, toggleUpvote, addComment } = useCommunity();
   const listRef = useRef<FlatList>(null);
 
@@ -62,7 +69,7 @@ export default function ThreadScreen() {
   function handleSend() {
     const trimmed = replyText.trim();
     if (!trimmed) return;
-    addComment(post!.id, 'You', trimmed);
+    addComment(post!.id, user?.firstName || 'You', trimmed, user?.imageUrl);
     setReplyText('');
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
   }
@@ -79,6 +86,9 @@ export default function ThreadScreen() {
       <View style={styles.postCard}>
         <View style={styles.postMeta}>
           <View style={styles.authorChip}>
+            {post.authorImage && (
+              <Image source={{ uri: post.authorImage }} style={styles.postAuthorAvatar} />
+            )}
             <Text style={styles.authorChipText}>{post.authorName}</Text>
           </View>
           <View style={[styles.categoryPill, { backgroundColor: '#F5EEF8' }]}>
@@ -214,12 +224,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   authorChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: '#F0EBF5',
     borderRadius: 20,
-    paddingHorizontal: 10,
+    paddingRight: 10,
+    paddingLeft: 4,
     paddingVertical: 4,
   },
-  authorChipText: { fontSize: 12, fontWeight: '600', color: '#6C3483' },
+  postAuthorAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  authorChipText: { fontSize: 12, fontWeight: '600', color: '#6C3483', marginLeft: 2 },
   categoryPill: {
     borderRadius: 20,
     paddingHorizontal: 10,
