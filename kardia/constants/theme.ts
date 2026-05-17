@@ -20,15 +20,15 @@ export const Colors = {
   borderSubtle: '#D1CBC2', // Lighter card borders (mini charts)
 
   // ── Functional colors (health status) ──
-  danger:     '#C0392B',
-  dangerBg:   '#FDEDEC',
-  dangerBorder: '#E74C3C',
-  warning:    '#B7770D',
-  warningBg:  '#FFFDE7',
-  warningBorder: '#F1C40F',
-  success:    '#1E8449',
-  successBg:  '#EAFAF1',
-  successBorder: '#27AE60',
+  danger:       '#7D2235',   // Deep rose — readable, urgent but on-palette
+  dangerBg:     '#F9EEF0',   // Very faint blush
+  dangerBorder: '#A0384E',   // Muted burgundy-rose
+  warning:      '#9A6B2E',   // Muted warm amber
+  warningBg:    '#FBF3E8',   // Very faint warm cream
+  warningBorder: '#D9A05B',  // Soft amber
+  success:      '#3A7A5A',   // Muted sage green
+  successBg:    '#EFF5F0',   // Very faint sage
+  successBorder: '#5A9A78',  // Muted sage border
 
   // ── Glucose accent ──
   glucose:    '#3D1119',   // Droplet icon color

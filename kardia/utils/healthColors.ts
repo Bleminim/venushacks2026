@@ -21,30 +21,30 @@ export function getBPStatus(systolic: number, diastolic: number): BPStatus {
     return {
       label:       'Call Doctor',
       sublabel:    'Gestational Hypertension Risk',
-      color:       '#C0392B',
-      bgColor:     '#FDEDEC',
-      borderColor: '#E74C3C',
+      color:       '#7D2235',
+      bgColor:     '#F9EEF0',
+      borderColor: '#A0384E',
       icon:        'exclamation-triangle',
     };
   }
-  // YELLOW — elevated for pregnancy, needs monitoring
+  // AMBER — elevated for pregnancy, needs monitoring
   if (systolic >= 120 || diastolic >= 80) {
     return {
       label:       'Monitor Closely',
       sublabel:    'Elevated for Pregnancy',
-      color:       '#B7770D',
-      bgColor:     '#FFFDE7',
-      borderColor: '#F1C40F',
+      color:       '#9A6B2E',
+      bgColor:     '#FBF3E8',
+      borderColor: '#D9A05B',
       icon:        'exclamation-circle',
     };
   }
-  // GREEN — normal
+  // SAGE — normal
   return {
     label:       'Normal',
     sublabel:    'Looking good',
-    color:       '#1E8449',
-    bgColor:     '#EAFAF1',
-    borderColor: '#27AE60',
+    color:       '#3A7A5A',
+    bgColor:     '#EFF5F0',
+    borderColor: '#5A9A78',
     icon:        'check-circle',
   };
 }
@@ -66,12 +66,12 @@ export interface GlucoseStatus {
 export function getGlucoseStatus(glucose: number, mealTiming: MealTiming): GlucoseStatus {
   if (mealTiming === 'pre') {
     // ACOG fasting thresholds
-    if (glucose > 105) return { label: 'High Risk', color: '#C0392B' };
-    if (glucose >= 95) return  { label: 'Elevated',  color: '#B7770D' };
-    return                     { label: 'Normal',    color: '#1E8449' };
+    if (glucose > 105) return { label: 'High Risk', color: '#7D2235' };
+    if (glucose >= 95) return  { label: 'Elevated',  color: '#9A6B2E' };
+    return                     { label: 'Normal',    color: '#3A7A5A' };
   }
-  // Post-meal: ACOG 2-hour threshold is 120 mg/dL; use 140 as a wider yellow band
-  if (glucose > 140) return { label: 'High Risk', color: '#C0392B' };
-  if (glucose >= 120) return { label: 'Elevated',  color: '#B7770D' };
-  return                     { label: 'Normal',    color: '#1E8449' };
+  // Post-meal: ACOG 2-hour threshold is 120 mg/dL; use 140 as a wider amber band
+  if (glucose > 140) return { label: 'High Risk', color: '#7D2235' };
+  if (glucose >= 120) return { label: 'Elevated',  color: '#9A6B2E' };
+  return                     { label: 'Normal',    color: '#3A7A5A' };
 }
