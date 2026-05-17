@@ -172,10 +172,34 @@ export default function HomeScreen() {
                     </View>
                   </View>
 
-                  {/* What does this mean? */}
+                  {/* Status card */}
+                  <View style={[styles.statusCard, { backgroundColor: status.bgColor, borderColor: status.borderColor }]}>
+                    <View style={styles.statusHeader}>
+                      <FontAwesome name={status.icon} size={22} color={status.color} />
+                      <View style={styles.statusLabelWrap}>
+                        <Text style={[styles.statusLabel, { color: status.color }]}>{status.label}</Text>
+                        <Text style={[styles.statusSublabel, { color: status.color }]}>{status.sublabel}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.statusBody}>{bodyText}</Text>
+                  </View>
+
+                  {/* What do these numbers mean? */}
                   <View style={styles.infoCard}>
-                    <Text style={styles.infoTitle}>What does this mean?</Text>
-                    <Text style={styles.infoBody}>{bodyText}</Text>
+                    <Text style={styles.infoTitle}>What do these numbers mean?</Text>
+                    {[
+                      { bold: `${latest.systolic} (Systolic)`, text: ' \u2014 the pressure when your heart beats. ACOG flags \u2265 140 as gestational hypertension.' },
+                      { bold: `${latest.diastolic} (Diastolic)`, text: ' \u2014 the pressure between beats. ACOG flags \u2265 90 as gestational hypertension.' },
+                      { bold: 'Normal in pregnancy', text: ' \u2014 below 120/80. Monitor daily; trends matter more than single readings.' },
+                    ].map((item, i) => (
+                      <View key={i} style={styles.bulletRow}>
+                        <View style={styles.bullet} />
+                        <Text style={styles.bulletText}>
+                          <Text style={styles.bulletBold}>{item.bold}</Text>
+                          {item.text}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
 
                   {/* Advocacy Script */}
@@ -361,26 +385,80 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
 
-  // Info card
+  // Status card
+  statusCard: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    padding: 16,
+    marginBottom: 15,
+  },
+  statusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  statusLabelWrap: { gap: 2 },
+  statusLabel: {
+    fontFamily: Fonts.semibold,
+    fontSize: 16,
+  },
+  statusSublabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+  },
+  statusBody: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: '#2C3E50',
+    lineHeight: 23,
+  },
+
+  // Info card (What do these numbers mean?)
   infoCard: {
     backgroundColor: Colors.ivory,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: Colors.borderCard,
-    padding: 11,
+    padding: 18,
     marginBottom: 15,
   },
   infoTitle: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.black,
-    marginBottom: 8,
+    fontFamily: Fonts.semibold,
+    fontSize: 16,
+    color: Colors.textDark,
+    marginBottom: 14,
   },
   infoBody: {
     fontFamily: Fonts.regular,
     fontSize: 13,
     color: Colors.textMuted,
     lineHeight: 19,
+  },
+
+  // Bullet list
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 12,
+  },
+  bullet: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#27AE60',
+    marginTop: 6,
+  },
+  bulletText: {
+    flex: 1,
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: '#2C3E50',
+    lineHeight: 21,
+  },
+  bulletBold: {
+    fontFamily: Fonts.semibold,
   },
 
   // Advocacy script card

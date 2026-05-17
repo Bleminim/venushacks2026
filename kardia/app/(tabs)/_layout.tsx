@@ -29,7 +29,7 @@ function TabIcon({
       <HugeiconsIcon
         icon={icon}
         size={24}
-        color={focused ? Colors.burgundy : '#C5B9A8'}
+        color={focused ? Colors.burgundy : '#7A6E61'}
         strokeWidth={focused ? 2 : 1.5}
       />
       {focused && <View style={tabStyles.dot} />}
