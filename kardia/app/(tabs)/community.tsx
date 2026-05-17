@@ -20,11 +20,11 @@ import { Colors, Fonts } from '@/constants/theme';
 // ─── Category pill ────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  'Postpartum BP':        { bg: '#FDEDEC', text: '#C0392B' },
-  'Gestational Diabetes': { bg: '#FEF9E7', text: '#B7770D' },
-  'Postpartum Anxiety':   { bg: '#EBF5FB', text: '#5C1A2B' },
-  'A1C & Long-Term Health': { bg: '#EAFAF1', text: '#1E8449' },
-  'Advocacy':             { bg: Colors.blush, text: Colors.burgundy },
+  'Postpartum BP':          { bg: '#F0DDE2', text: '#7D2235' },
+  'Gestational Diabetes':   { bg: '#F0E6D6', text: '#9A6B2E' },
+  'Postpartum Anxiety':     { bg: '#DDE8F0', text: Colors.burgundy },
+  'A1C & Long-Term Health': { bg: '#D8EBE3', text: '#3A7A5A' },
+  'Advocacy':               { bg: Colors.blush, text: Colors.burgundy },
 };
 
 function CategoryPill({ label }: { label: string }) {

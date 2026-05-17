@@ -311,6 +311,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: Fonts.regular,
     fontSize: 11,
-    color: Colors.borderCard,
+    color: 'rgba(0,0,0,0.4)',
   },
 });
