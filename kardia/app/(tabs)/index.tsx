@@ -125,7 +125,9 @@ function MiniChart({ metric, cardWidth }: { metric: 'bp' | 'glucose'; cardWidth:
     );
   }
 
-  const dataMax = Math.max(...chartData.map(d => d.value)) + (metric === 'bp' ? 14 : 18);
+  const pad     = metric === 'bp' ? 100 : 100;
+  const dataMax = Math.max(...chartData.map(d => d.value)) + pad;
+  const dataMin = metric === 'bp' ? 50 : Math.max(0, Math.min(...chartData.map(d => d.value)) - pad);
   const spacing = Math.max(2, chartW / Math.max(chartData.length - 1, 1));
 
   return (
@@ -146,6 +148,7 @@ function MiniChart({ metric, cardWidth }: { metric: 'bp' | 'glucose'; cardWidth:
       startOpacity={0.38}
       endOpacity={0.01}
       maxValue={dataMax}
+      minValue={dataMin}
       noOfSections={2}
       hideRules
       hideYAxisText
