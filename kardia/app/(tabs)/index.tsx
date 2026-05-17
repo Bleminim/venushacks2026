@@ -51,6 +51,25 @@ function getDateString(): string {
   return `${day}, ${month} ${date}${suffix}`;
 }
 
+const MONTH_NUM: Record<string, string> = {
+  January: '01', February: '02', March: '03', April: '04', May: '05', June: '06',
+  July: '07', August: '08', September: '09', October: '10', November: '11', December: '12',
+};
+
+function formatLogDate(dateStr: string): string {
+  // Input: "May 14, 2026 · 8:22 AM"  →  "05/14/26 8:22 AM"
+  try {
+    const [datePart, timePart] = dateStr.split(' · ');
+    const parts = datePart.trim().replace(',', '').split(/\s+/);
+    const mm = MONTH_NUM[parts[0]] ?? '??';
+    const dd = parts[1].padStart(2, '0');
+    const yy = parts[2].slice(-2);
+    return `${mm}/${dd}/${yy} ${timePart.trim()}`;
+  } catch {
+    return dateStr;
+  }
+}
+
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EmptyState() {
@@ -144,7 +163,7 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                         <Text style={styles.a1cText}>
                           {latest.a1c !== null ? `${latest.a1c}%` : '5.7%'} A1C
-                          <Text style={styles.cardDate}>   ·   {latest.date}</Text>
+                          <Text style={styles.cardDate}>  ·  {formatLogDate(latest.date)}</Text>
                         </Text>
                       </View>
 
