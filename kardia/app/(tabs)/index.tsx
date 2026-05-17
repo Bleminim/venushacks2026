@@ -126,7 +126,7 @@ function MiniChart({ metric, cardWidth }: { metric: 'bp' | 'glucose'; cardWidth:
   }
 
   const dataMax = Math.max(...chartData.map(d => d.value)) + (metric === 'bp' ? 14 : 18);
-  const spacing = Math.max(2, (chartW - 20) / Math.max(chartData.length - 1, 1));
+  const spacing = Math.max(2, chartW / Math.max(chartData.length - 1, 1));
 
   return (
     <LineChart
@@ -136,6 +136,9 @@ function MiniChart({ metric, cardWidth }: { metric: 'bp' | 'glucose'; cardWidth:
       width={chartW}
       height={55}
       spacing={spacing}
+      initialSpacing={0}
+      yAxisLabelWidth={0}
+      endSpacing={0}
       color={lineColor}
       thickness={2}
       startFillColor={fillColor}
