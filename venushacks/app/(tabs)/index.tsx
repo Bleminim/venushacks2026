@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -7,6 +7,8 @@ import {
   Text,
 } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+
+import { useUser } from '@clerk/clerk-expo';
 
 import { useHealth, LogEntry } from '@/context/HealthContext';
 import { getBPStatus } from '@/utils/healthColors';
@@ -58,9 +60,19 @@ function EmptyState() {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
-  const { logs } = useHealth();
+  const { logs }  = useHealth();
+  const { user }  = useUser();
   const [scriptExpanded, setScriptExpanded] = useState(false);
   const [showMAP,        setShowMAP]        = useState(false);
+
+  const timeOfDay = useMemo(() => {
+    const h = new Date().getHours();
+    if (h >= 5  && h < 12) return 'morning';
+    if (h >= 12 && h < 17) return 'afternoon';
+    return 'evening';
+  }, []);
+
+  const firstName = user?.firstName || 'there';
 
   const latest   = logs[0] ?? null;
   const mapValue = latest
@@ -75,7 +87,7 @@ export default function HomeScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.greeting}>Good morning</Text>
+        <Text style={styles.greeting}>Good {timeOfDay}, {firstName}.</Text>
         <Text style={styles.headerTitle}>Translation Engine</Text>
         <Text style={styles.headerSub}>Your latest reading, explained.</Text>
       </View>
@@ -265,8 +277,8 @@ const styles = StyleSheet.create({
   container: { padding: 20 },
 
   header: { marginBottom: 20, marginTop: 4 },
-  greeting: { fontSize: 13, color: '#888', letterSpacing: 0.4, textTransform: 'uppercase' },
-  headerTitle: { fontSize: 26, fontWeight: '700', color: '#1A1A2E', marginTop: 2 },
+  greeting: { fontSize: 28, fontWeight: '600', color: '#1A1A2E', letterSpacing: -0.5 },
+  headerTitle: { fontSize: 13, color: '#9B59B6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 6 },
   headerSub: { fontSize: 14, color: '#666', marginTop: 2 },
 
   // Empty state
