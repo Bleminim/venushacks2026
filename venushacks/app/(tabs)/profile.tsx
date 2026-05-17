@@ -7,6 +7,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import { useAuth, useUser } from '@clerk/clerk-expo';
@@ -40,6 +41,7 @@ function SettingsRow({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
+  const { top }     = useSafeAreaInsets();
   const router      = useRouter();
   const { signOut } = useAuth();
   const { user }    = useUser();
@@ -71,7 +73,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView
       style={styles.scroll}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
       showsVerticalScrollIndicator={false}
     >
       {/* ── Header ── */}

@@ -6,6 +6,7 @@ import {
   View,
   Text,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useUser } from '@clerk/clerk-expo';
@@ -60,6 +61,7 @@ function EmptyState() {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const { top }   = useSafeAreaInsets();
   const { logs }  = useHealth();
   const { user }  = useUser();
   const [scriptExpanded, setScriptExpanded] = useState(false);
@@ -82,7 +84,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       style={styles.scroll}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}

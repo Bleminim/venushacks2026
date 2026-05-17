@@ -6,6 +6,7 @@ import {
   View,
   Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 
@@ -98,12 +99,13 @@ function PostCard({ post }: { post: Post }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function CommunityScreen() {
+  const { top }   = useSafeAreaInsets();
   const { posts } = useCommunity();
 
   return (
     <FlatList
       style={styles.scroll}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
       data={posts}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useHealth, LogEntry, MealTiming } from '@/context/HealthContext';
@@ -106,7 +107,8 @@ function LogCard({ entry, onEdit }: LogCardProps) {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function LogScreen() {
-  const listRef = useRef<FlatList>(null);
+  const { top }  = useSafeAreaInsets();
+  const listRef  = useRef<FlatList>(null);
   const { logs, addLog, updateLog } = useHealth();
 
   // Form state
@@ -275,7 +277,7 @@ export default function LogScreen() {
       <FlatList
         ref={listRef}
         style={styles.scroll}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
         data={logs}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={ListHeader}

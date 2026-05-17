@@ -7,6 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-gifted-charts';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
@@ -62,6 +63,7 @@ function shortDate(dateStr: string): string {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function InsightsScreen() {
+  const { top }   = useSafeAreaInsets();
   const { logs }  = useHealth();
   const { width } = useWindowDimensions();
   const chartW    = width - 40;
@@ -145,7 +147,7 @@ export default function InsightsScreen() {
   return (
     <ScrollView
       style={styles.scroll}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
       showsVerticalScrollIndicator={false}
     >
       {/* ── Page header ── */}
