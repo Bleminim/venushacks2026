@@ -10,23 +10,25 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 
 import { useCommunity, type Post } from '@/context/CommunityContext';
+import { Colors, Fonts } from '@/constants/theme';
 
 // ─── Category pill ────────────────────────────────────────────────────────────
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   'Postpartum BP':        { bg: '#FDEDEC', text: '#C0392B' },
   'Gestational Diabetes': { bg: '#FEF9E7', text: '#B7770D' },
-  'Postpartum Anxiety':   { bg: '#EBF5FB', text: '#1A5276' },
+  'Postpartum Anxiety':   { bg: '#EBF5FB', text: '#5C1A2B' },
   'A1C & Long-Term Health': { bg: '#EAFAF1', text: '#1E8449' },
-  'Advocacy':             { bg: '#F5EEF8', text: '#6C3483' },
+  'Advocacy':             { bg: Colors.blush, text: Colors.burgundy },
 };
 
 function CategoryPill({ label }: { label: string }) {
-  const colors = CATEGORY_COLORS[label] ?? { bg: '#F0EBF5', text: '#9B59B6' };
+  const colors = CATEGORY_COLORS[label] ?? { bg: Colors.blush, text: Colors.wine };
   return (
     <View style={[styles.pill, { backgroundColor: colors.bg }]}>
       <Text style={[styles.pillText, { color: colors.text }]}>{label}</Text>
@@ -77,9 +79,9 @@ function PostCard({ post }: { post: Post }) {
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <FontAwesome
-            name={post.upvoted ? 'arrow-up' : 'arrow-up'}
+            name="arrow-up"
             size={13}
-            color={post.upvoted ? '#9B59B6' : '#bbb'}
+            color={post.upvoted ? Colors.wine : Colors.borderCard}
           />
           <Text style={[styles.actionCount, post.upvoted && styles.actionCountActive]}>
             {post.upvoteCount}
@@ -88,7 +90,7 @@ function PostCard({ post }: { post: Post }) {
 
         {/* Comment count */}
         <View style={styles.actionBtn}>
-          <FontAwesome name="comment-o" size={13} color="#bbb" />
+          <FontAwesome name="comment-o" size={13} color={Colors.borderCard} />
           <Text style={styles.actionCount}>{post.comments.length}</Text>
         </View>
 
@@ -123,126 +125,149 @@ export default function CommunityScreen() {
   }, [posts, searchQuery, selectedCategory]);
 
   return (
-    <FlatList
-      style={styles.scroll}
-      contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
-      data={filteredPosts}
-      keyExtractor={(item) => item.id}
-      showsVerticalScrollIndicator={false}
-      ListHeaderComponent={
-        <View style={styles.header}>
-          <Text style={styles.headerEyebrow}>Together We're Stronger</Text>
-          <Text style={styles.headerTitle}>Community</Text>
-          <Text style={styles.headerSub}>
-            Real experiences from mothers navigating maternal health. Tap a post to join the conversation.
-          </Text>
+    <View style={styles.screenWrap}>
+      <LinearGradient
+        colors={['#FBF7F0', '#F5EFE6', '#F0DDD0']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <FlatList
+        style={styles.scroll}
+        contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
+        data={filteredPosts}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.headerEyebrow}>Together We're Stronger</Text>
+            <Text style={styles.headerTitle}>Community</Text>
+            <Text style={styles.headerSub}>
+              Real experiences from mothers navigating maternal health. Tap a post to join the conversation.
+            </Text>
 
-          {/* ── Search Bar ── */}
-          <View style={styles.searchContainer}>
-            <FontAwesome name="search" size={16} color="#C5BAD0" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search posts..."
-              placeholderTextColor="#C5BAD0"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              returnKeyType="search"
-              clearButtonMode="while-editing"
-            />
+            {/* ── Search Bar ── */}
+            <View style={styles.searchContainer}>
+              <FontAwesome name="search" size={16} color={Colors.borderCard} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search posts..."
+                placeholderTextColor={Colors.borderCard}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                returnKeyType="search"
+                clearButtonMode="while-editing"
+              />
+            </View>
+
+            {/* ── Category Filter ── */}
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterScroll}
+            >
+              {categories.map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.filterPill,
+                    selectedCategory === cat && styles.filterPillActive
+                  ]}
+                  onPress={() => setSelectedCategory(cat)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[
+                    styles.filterPillText,
+                    selectedCategory === cat && styles.filterPillTextActive
+                  ]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
-
-          {/* ── Category Filter ── */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScroll}
-          >
-            {categories.map(cat => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.filterPill,
-                  selectedCategory === cat && styles.filterPillActive
-                ]}
-                onPress={() => setSelectedCategory(cat)}
-                activeOpacity={0.8}
-              >
-                <Text style={[
-                  styles.filterPillText,
-                  selectedCategory === cat && styles.filterPillTextActive
-                ]}>
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      }
-      renderItem={({ item }) => <PostCard post={item} />}
-      ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-      ListFooterComponent={<View style={{ height: 32 }} />}
-      ListEmptyComponent={
-        <View style={styles.emptyContainer}>
-          <FontAwesome name="search" size={32} color="#D7BDE2" />
-          <Text style={styles.emptyText}>No posts found matching your criteria.</Text>
-        </View>
-      }
-    />
+        }
+        renderItem={({ item }) => <PostCard post={item} />}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ListFooterComponent={<View style={{ height: 32 }} />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <FontAwesome name="search" size={32} color={Colors.blush} />
+            <Text style={styles.emptyText}>No posts found matching your criteria.</Text>
+          </View>
+        }
+      />
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  scroll:    { flex: 1, backgroundColor: '#F8F4F9' },
+  screenWrap: { flex: 1 },
+  scroll:    { flex: 1 },
   container: { padding: 20, paddingBottom: 130 },
 
   header: { marginBottom: 8, marginTop: 4 },
-  headerEyebrow: { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 },
-  headerTitle:   { fontSize: 26, fontWeight: '700', color: '#1A1A2E', marginTop: 2 },
-  headerSub:     { fontSize: 13, color: '#666', marginTop: 4, lineHeight: 19 },
+  headerEyebrow: {
+    fontFamily: Fonts.semibold,
+    fontSize: 15,
+    color: 'rgba(140,58,77,0.5)',
+    letterSpacing: 0.5,
+  },
+  headerTitle: {
+    fontFamily: Fonts.semibold,
+    fontSize: 25,
+    color: Colors.textDark,
+    marginTop: 2,
+  },
+  headerSub: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    marginTop: 4,
+    lineHeight: 19,
+  },
 
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
     marginTop: 20,
     marginBottom: 16,
     paddingHorizontal: 16,
     height: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   searchIcon: { marginRight: 10 },
   searchInput: {
     flex: 1,
+    fontFamily: Fonts.regular,
     fontSize: 15,
-    color: '#1A1A2E',
+    color: Colors.textDark,
   },
   filterScroll: { gap: 8, paddingBottom: 16 },
   filterPill: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.ivory,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#E8D5F5',
+    borderColor: Colors.borderCard,
   },
   filterPillActive: {
-    backgroundColor: '#9B59B6',
-    borderColor: '#9B59B6',
+    backgroundColor: Colors.wine,
+    borderColor: Colors.wine,
   },
   filterPillText: {
+    fontFamily: Fonts.regular,
     fontSize: 13,
-    fontWeight: '600',
-    color: '#6C3483',
+    color: Colors.wine,
   },
   filterPillTextActive: {
-    color: '#fff',
+    color: Colors.cream,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -250,20 +275,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyText: {
+    fontFamily: Fonts.regular,
     fontSize: 15,
-    color: '#888',
+    color: Colors.textMuted,
     textAlign: 'center',
   },
 
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 3,
   },
 
   cardMeta: {
@@ -278,27 +301,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  pillText: { fontSize: 11, fontWeight: '700' },
+  pillText: {
+    fontFamily: Fonts.bold,
+    fontSize: 11,
+  },
 
   authorWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   authorAvatar: { width: 24, height: 24, borderRadius: 12 },
   authorAvatarPlaceholder: {
-    width: 24, height: 24, borderRadius: 12, backgroundColor: '#E8D5F5',
+    width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.blush,
     alignItems: 'center', justifyContent: 'center'
   },
-  authorAvatarText: { fontSize: 10, fontWeight: '700', color: '#9B59B6' },
-  author: { fontSize: 12, color: '#aaa', fontWeight: '500' },
+  authorAvatarText: {
+    fontFamily: Fonts.bold,
+    fontSize: 10,
+    color: Colors.wine,
+  },
+  author: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
 
   postTitle: {
+    fontFamily: Fonts.semibold,
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1A1A2E',
+    color: Colors.textDark,
     lineHeight: 21,
     marginBottom: 6,
   },
   postSnippet: {
+    fontFamily: Fonts.regular,
     fontSize: 13,
-    color: '#666',
+    color: Colors.textMuted,
     lineHeight: 19,
     marginBottom: 14,
   },
@@ -308,7 +343,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F0EBF5',
+    borderTopColor: Colors.borderCard,
     paddingTop: 12,
   },
   actionBtn: {
@@ -316,13 +351,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
-  actionCount:       { fontSize: 13, color: '#bbb', fontWeight: '600' },
-  actionCountActive: { color: '#9B59B6' },
+  actionCount: {
+    fontFamily: Fonts.semibold,
+    fontSize: 13,
+    color: Colors.borderCard,
+  },
+  actionCountActive: { color: Colors.wine },
 
   readThread: {
     marginLeft: 'auto',
+    fontFamily: Fonts.semibold,
     fontSize: 12,
-    color: '#9B59B6',
-    fontWeight: '600',
+    color: Colors.wine,
   },
 });

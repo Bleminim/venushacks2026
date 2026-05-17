@@ -13,6 +13,8 @@ import {
   UserIcon,
 } from '@hugeicons/core-free-icons';
 
+import { Colors } from '@/constants/theme';
+
 // ─── Tab icon with dot indicator ──────────────────────────────────────────────
 
 function TabIcon({
@@ -27,7 +29,7 @@ function TabIcon({
       <HugeiconsIcon
         icon={icon}
         size={24}
-        color={focused ? '#1A1A2E' : '#B0A8C0'}
+        color={focused ? Colors.burgundy : '#C5B9A8'}
         strokeWidth={focused ? 2 : 1.5}
       />
       {focused && <View style={tabStyles.dot} />}
@@ -37,13 +39,13 @@ function TabIcon({
 
 const tabStyles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 4 },
-  dot:  { width: 4, height: 4, borderRadius: 2, backgroundColor: '#9B59B6' },
+  dot:  { width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.wine },
   // Clips blur + overlay to the pill shape
   pillClip: { borderRadius: 40, overflow: 'hidden' },
-  // Semi-transparent white tint that gives the "frosted glass" colour
+  // Semi-transparent warm tint that gives the frosted glass colour
   glassOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(248, 244, 249, 0.55)',
+    backgroundColor: 'rgba(251, 247, 240, 0.65)',
   },
 });
 
@@ -69,11 +71,11 @@ export default function TabLayout() {
           height: 65,
           backgroundColor: 'transparent',
           borderTopWidth: 1,
-          borderTopColor: 'rgba(255, 255, 255, 0.75)',
+          borderTopColor: 'rgba(220, 214, 206, 0.5)',
           elevation: 5,
-          shadowColor: '#000',
+          shadowColor: '#3D1119',
           shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.10,
+          shadowOpacity: 0.08,
           shadowRadius: 15,
           paddingTop: 8,
           paddingBottom: 0,

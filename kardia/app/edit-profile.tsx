@@ -13,10 +13,13 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import * as ImagePicker from 'expo-image-picker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+
+import { Colors, Fonts } from '@/constants/theme';
 
 export default function EditProfileScreen() {
   const router   = useRouter();
@@ -93,113 +96,120 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
+    <View style={styles.screenWrap}>
+      <LinearGradient
+        colors={['#FBF7F0', '#F5EFE6', '#F0DDD0']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
           style={styles.flex}
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* ── Nav row ── */}
-          <View style={styles.navRow}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()} activeOpacity={0.7}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.navTitle}>Edit Profile</Text>
+          <ScrollView
+            style={styles.flex}
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* ── Nav row ── */}
+            <View style={styles.navRow}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()} activeOpacity={0.7}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.navTitle}>Edit Profile</Text>
+              <TouchableOpacity
+                style={[styles.saveBtn, (!isValid || loading) && styles.saveBtnDisabled]}
+                onPress={handleSave}
+                disabled={!isValid || loading}
+                activeOpacity={0.8}
+              >
+                {loading
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <Text style={styles.saveBtnText}>Save</Text>
+                }
+              </TouchableOpacity>
+            </View>
+
+            {/* ── Avatar ── */}
+            <View style={styles.avatarSection}>
+              <TouchableOpacity style={styles.avatarWrap} onPress={pickImage} activeOpacity={0.8}>
+                {displayImage ? (
+                  <Image source={{ uri: displayImage }} style={styles.avatarImage} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    {initials ? (
+                      <Text style={styles.avatarInitials}>{initials}</Text>
+                    ) : (
+                      <FontAwesome name="user" size={36} color={Colors.borderCard} />
+                    )}
+                  </View>
+                )}
+                <View style={styles.cameraOverlay}>
+                  <FontAwesome name="camera" size={13} color="#fff" />
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.avatarHint}>Tap to change photo</Text>
+            </View>
+
+            {/* ── Name card ── */}
+            <View style={styles.card}>
+              <Text style={styles.sectionLabel}>Name</Text>
+
+              <Text style={styles.fieldLabel}>First name</Text>
+              <TextInput
+                style={styles.input}
+                value={firstName}
+                onChangeText={setFirstName}
+                placeholder="First name"
+                placeholderTextColor={Colors.borderCard}
+                autoCapitalize="words"
+                autoCorrect={false}
+                returnKeyType="next"
+              />
+
+              <View style={styles.fieldSpacer} />
+
+              <Text style={styles.fieldLabel}>Last name</Text>
+              <TextInput
+                style={styles.input}
+                value={lastName}
+                onChangeText={setLastName}
+                placeholder="Last name"
+                placeholderTextColor={Colors.borderCard}
+                autoCapitalize="words"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleSave}
+              />
+            </View>
+
+            {/* ── Save Changes (bottom) ── */}
             <TouchableOpacity
-              style={[styles.saveBtn, (!isValid || loading) && styles.saveBtnDisabled]}
+              style={[styles.primaryBtn, (!isValid || loading) && styles.primaryBtnDisabled]}
               onPress={handleSave}
               disabled={!isValid || loading}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
               {loading
-                ? <ActivityIndicator color="#fff" size="small" />
-                : <Text style={styles.saveBtnText}>Save</Text>
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.primaryBtnText}>Save Changes</Text>
               }
             </TouchableOpacity>
-          </View>
-
-          {/* ── Avatar ── */}
-          <View style={styles.avatarSection}>
-            <TouchableOpacity style={styles.avatarWrap} onPress={pickImage} activeOpacity={0.8}>
-              {displayImage ? (
-                <Image source={{ uri: displayImage }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  {initials ? (
-                    <Text style={styles.avatarInitials}>{initials}</Text>
-                  ) : (
-                    <FontAwesome name="user" size={36} color="#C5BAD0" />
-                  )}
-                </View>
-              )}
-              <View style={styles.cameraOverlay}>
-                <FontAwesome name="camera" size={13} color="#fff" />
-              </View>
-            </TouchableOpacity>
-            <Text style={styles.avatarHint}>Tap to change photo</Text>
-          </View>
-
-          {/* ── Name card ── */}
-          <View style={styles.card}>
-            <Text style={styles.sectionLabel}>Name</Text>
-
-            <Text style={styles.fieldLabel}>First name</Text>
-            <TextInput
-              style={styles.input}
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder="First name"
-              placeholderTextColor="#C5BAD0"
-              autoCapitalize="words"
-              autoCorrect={false}
-              returnKeyType="next"
-            />
-
-            <View style={styles.fieldSpacer} />
-
-            <Text style={styles.fieldLabel}>Last name</Text>
-            <TextInput
-              style={styles.input}
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder="Last name"
-              placeholderTextColor="#C5BAD0"
-              autoCapitalize="words"
-              autoCorrect={false}
-              returnKeyType="done"
-              onSubmitEditing={handleSave}
-            />
-          </View>
-
-          {/* ── Save Changes (bottom) ── */}
-          <TouchableOpacity
-            style={[styles.primaryBtn, (!isValid || loading) && styles.primaryBtnDisabled]}
-            onPress={handleSave}
-            disabled={!isValid || loading}
-            activeOpacity={0.85}
-          >
-            {loading
-              ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.primaryBtnText}>Save Changes</Text>
-            }
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const PURPLE = '#9B59B6';
-
 const styles = StyleSheet.create({
-  safe:      { flex: 1, backgroundColor: '#F8F4F9' },
+  screenWrap: { flex: 1 },
+  safe:      { flex: 1 },
   flex:      { flex: 1 },
   container: { padding: 20, paddingBottom: 48 },
 
@@ -207,62 +217,104 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', marginBottom: 28,
   },
-  cancelBtn:       { paddingVertical: 4, paddingRight: 8 },
-  cancelText:      { fontSize: 15, color: '#888', fontWeight: '500' },
-  navTitle:        { fontSize: 17, fontWeight: '700', color: '#1A1A2E' },
+  cancelBtn:  { paddingVertical: 4, paddingRight: 8 },
+  cancelText: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textMuted,
+  },
+  navTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 17,
+    color: Colors.textDark,
+  },
   saveBtn: {
-    backgroundColor: PURPLE, borderRadius: 20,
+    backgroundColor: Colors.wine, borderRadius: 20,
     paddingHorizontal: 16, paddingVertical: 7,
     minWidth: 60, alignItems: 'center',
   },
-  saveBtnDisabled: { backgroundColor: '#D5C9E0' },
-  saveBtnText:     { fontSize: 14, fontWeight: '700', color: '#fff' },
+  saveBtnDisabled: { backgroundColor: Colors.blush },
+  saveBtnText: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: Colors.cream,
+  },
 
   avatarSection: { alignItems: 'center', marginBottom: 28 },
   avatarWrap:    { position: 'relative', marginBottom: 8 },
   avatarImage: {
     width: 96, height: 96, borderRadius: 48,
-    borderWidth: 3, borderColor: '#E8D5F5',
+    borderWidth: 3, borderColor: Colors.blush,
   },
   avatarPlaceholder: {
     width: 96, height: 96, borderRadius: 48,
-    backgroundColor: '#E8D5F5',
+    backgroundColor: Colors.blush,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 3, borderColor: '#D7BDE2',
+    borderWidth: 3, borderColor: Colors.borderCard,
   },
-  avatarInitials: { fontSize: 32, fontWeight: '700', color: PURPLE },
+  avatarInitials: {
+    fontFamily: Fonts.bold,
+    fontSize: 32,
+    color: Colors.wine,
+  },
   cameraOverlay: {
     position: 'absolute', bottom: 2, right: 2,
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: PURPLE,
+    backgroundColor: Colors.wine,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: '#F8F4F9',
+    borderWidth: 2, borderColor: Colors.cream,
   },
-  avatarHint: { fontSize: 13, color: '#aaa', fontWeight: '500' },
+  avatarHint: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
 
   card: {
-    backgroundColor: '#fff', borderRadius: 18, padding: 18, marginBottom: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    padding: 18,
+    marginBottom: 20,
   },
   sectionLabel: {
-    fontSize: 13, fontWeight: '700', color: '#444',
-    textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 14,
+    fontFamily: Fonts.semibold,
+    fontSize: 13,
+    color: Colors.textDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 14,
   },
-  fieldLabel:  { fontSize: 12, color: '#888', fontWeight: '500', marginBottom: 6 },
+  fieldLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+    marginBottom: 6,
+  },
   fieldSpacer: { height: 14 },
   input: {
-    backgroundColor: '#F9F6FC', borderWidth: 1.5, borderColor: '#E8E0EE',
-    borderRadius: 12, height: 50, paddingHorizontal: 14,
-    fontSize: 16, color: '#1A1A2E',
+    backgroundColor: Colors.cream,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    borderRadius: 10,
+    height: 50,
+    paddingHorizontal: 14,
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: Colors.textDark,
   },
 
   primaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: PURPLE, borderRadius: 16, height: 56,
-    shadowColor: PURPLE, shadowOffset: { width: 0, height: 4 },
+    backgroundColor: Colors.wine, borderRadius: 10, height: 56,
+    shadowColor: Colors.wine, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25, shadowRadius: 12, elevation: 5,
   },
-  primaryBtnDisabled: { backgroundColor: '#D5C9E0', shadowOpacity: 0 },
-  primaryBtnText:     { fontSize: 17, fontWeight: '700', color: '#fff' },
+  primaryBtnDisabled: { backgroundColor: Colors.blush, shadowOpacity: 0 },
+  primaryBtnText: {
+    fontFamily: Fonts.bold,
+    fontSize: 17,
+    color: Colors.cream,
+  },
 });

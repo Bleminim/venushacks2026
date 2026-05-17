@@ -7,12 +7,14 @@ import {
   Text,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useUser } from '@clerk/clerk-expo';
 
 import { useHealth, LogEntry } from '@/context/HealthContext';
 import { getBPStatus } from '@/utils/healthColors';
+import { Colors, Fonts } from '@/constants/theme';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -33,14 +35,20 @@ function buildAdvocacyScript(entry: LogEntry): string {
     ? 'the threshold for Stage 2 hypertension'
     : 'approaching elevated levels';
 
-  return `"I've been tracking my blood pressure at home and I want to share a reading with you. My most recent reading was ${bpLine}. I know that's ${isHigh ? 'above 140/90' : 'worth discussing'}, which I understand is ${threshold}.
+  return `"Hi, I'm 2 weeks postpartum and my home blood pressure readings have averaged ${bpLine} for the past 5 days, up from my baseline of 118/76.\n\n I'm concerned about postpartum preeclampsia. Can I be seen today, or should I go to the ER?"`;
+}
 
-I'd like to understand:
-  1. Does this reading concern you given where I am in my pregnancy or postpartum recovery?
-  2. Should we be adjusting my monitoring schedule or treatment plan?
-  3. What warning signs should prompt me to call you or go to the ER immediately?
-
-I want to make sure we're on the same page about next steps."`;
+function getDateString(): string {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const now = new Date();
+  const day = days[now.getDay()];
+  const month = months[now.getMonth()];
+  const date = now.getDate();
+  const suffix = date === 1 || date === 21 || date === 31 ? 'st'
+    : date === 2 || date === 22 ? 'nd'
+    : date === 3 || date === 23 ? 'rd' : 'th';
+  return `${day}, ${month} ${date}${suffix}`;
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
@@ -48,7 +56,7 @@ I want to make sure we're on the same page about next steps."`;
 function EmptyState() {
   return (
     <View style={styles.emptyCard}>
-      <FontAwesome name="heartbeat" size={36} color="#D7BDE2" />
+      <FontAwesome name="heartbeat" size={36} color={Colors.blush} />
       <Text style={styles.emptyTitle}>No readings yet</Text>
       <Text style={styles.emptyBody}>
         Head to the <Text style={styles.emptyBold}>Log tab</Text> to record your first blood
@@ -69,12 +77,12 @@ export default function HomeScreen() {
 
   const timeOfDay = useMemo(() => {
     const h = new Date().getHours();
-    if (h >= 5  && h < 12) return 'morning';
-    if (h >= 12 && h < 17) return 'afternoon';
-    return 'evening';
+    if (h >= 5  && h < 12) return 'Morning';
+    if (h >= 12 && h < 17) return 'Afternoon';
+    return 'Evening';
   }, []);
 
-  const firstName = user?.firstName || 'there';
+  const firstName = user?.firstName || 'Mom';
 
   const latest   = logs[0] ?? null;
   const mapValue = latest
@@ -82,290 +90,351 @@ export default function HomeScreen() {
     : 0;
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Good {timeOfDay}, {firstName}.</Text>
-        <Text style={styles.headerTitle}>Translation Engine</Text>
-        <Text style={styles.headerSub}>Your latest reading, explained.</Text>
-      </View>
+    <View style={styles.screenWrap}>
+      {/* Background gradient */}
+      <LinearGradient
+        colors={['#FBF7F0', '#F5DDD0', '#E8C4B8', '#D4A99A']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
 
-      {latest === null ? (
-        <EmptyState />
-      ) : (
-        <>
-          {/* BP Reading Card */}
-          {(() => {
-            const status   = getBPStatus(latest.systolic, latest.diastolic);
-            const bodyText = bpPlainText(latest.systolic, latest.diastolic);
-            return (
-              <>
-                <View style={styles.readingCard}>
-                  <View style={styles.readingRow}>
-                    <View style={styles.readingMain}>
-                      <Text style={styles.bpLabel}>Blood Pressure</Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.dateText}>{getDateString()}</Text>
+          <Text style={styles.greeting}>Good {timeOfDay}, {firstName}!</Text>
+          <Text style={styles.headerTitle}>
+            Here is a review on{'\n'}your health..
+          </Text>
+        </View>
 
-                      {/* Tappable value — toggles between Sys/Dia and MAP */}
-                      <TouchableOpacity
-                        onPress={() => setShowMAP((v) => !v)}
-                        activeOpacity={0.7}
-                        style={styles.bpValueTouchable}
-                      >
-                        <View style={styles.bpValueRow}>
-                          {showMAP ? (
-                            <Text style={[styles.bpValue, { color: status.color }]}>
-                              {mapValue}
-                            </Text>
-                          ) : (
-                            <Text style={[styles.bpValue, { color: status.color }]}>
-                              {latest.systolic}/{latest.diastolic}
-                            </Text>
-                          )}
-                          {/* Swap icon — subtle visual affordance */}
-                          <FontAwesome
-                            name="exchange"
-                            size={13}
-                            color={status.color}
-                            style={styles.bpSwapIcon}
-                          />
+        {latest === null ? (
+          <EmptyState />
+        ) : (
+          <>
+            {/* BP Reading Card — Diagnostic Overview */}
+            {(() => {
+              const status   = getBPStatus(latest.systolic, latest.diastolic);
+              const bodyText = bpPlainText(latest.systolic, latest.diastolic);
+              return (
+                <>
+                  <View style={styles.diagnosticCard}>
+                    <View style={styles.diagnosticRow}>
+                      <View style={styles.diagnosticLeft}>
+                        <Text style={styles.bpLabel}>Blood Pressure</Text>
+                        <TouchableOpacity
+                          onPress={() => setShowMAP((v) => !v)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.bpValueRow}>
+                            {showMAP ? (
+                              <Text style={styles.bpValue}>{mapValue}</Text>
+                            ) : (
+                              <Text style={styles.bpValue}>
+                                {latest.systolic}/{latest.diastolic}{' '}
+                                <Text style={styles.bpUnit}>mmHg</Text>
+                              </Text>
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                        <Text style={styles.a1cText}>
+                          {latest.a1c !== null ? `${latest.a1c}%` : '5.7%'} A1C
+                        </Text>
+                      </View>
+
+                      {/* Glucose droplet side */}
+                      <View style={styles.glucoseBox}>
+                        <FontAwesome name="tint" size={22} color={Colors.burgundy} />
+                        <Text style={styles.glucoseValue}>{latest.glucose}</Text>
+                        <Text style={styles.glucoseLabel}>mg/dL</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Mini chart cards row */}
+                  <View style={styles.miniChartRow}>
+                    <View style={styles.miniChartCard}>
+                      <Text style={styles.miniChartLabel}>Blood Pressure</Text>
+                      <View style={styles.miniChartPlaceholder}>
+                        <View style={styles.miniChartLine} />
+                      </View>
+                    </View>
+                    <View style={styles.miniChartCard}>
+                      <Text style={styles.miniChartLabel}>Glucose</Text>
+                      <View style={styles.miniChartPlaceholder}>
+                        <View style={styles.miniChartLine} />
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* What does this mean? */}
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoTitle}>What does this mean?</Text>
+                    <Text style={styles.infoBody}>{bodyText}</Text>
+                  </View>
+
+                  {/* Advocacy Script */}
+                  <TouchableOpacity
+                    style={styles.scriptCard}
+                    onPress={() => setScriptExpanded(!scriptExpanded)}
+                    activeOpacity={0.85}
+                  >
+                    <View style={styles.scriptHeader}>
+                      <View style={styles.scriptTitleRow}>
+                        <View style={styles.scriptDot}>
+                          <View style={styles.scriptDotInner} />
                         </View>
-                        <Text style={styles.bpUnit}>
-                          {showMAP ? 'MAP · Mean Arterial Pressure' : 'mmHg'}
-                        </Text>
-                      </TouchableOpacity>
-
-                      <Text style={styles.bpTimestamp}>{latest.date}</Text>
-                    </View>
-                    {/* Glucose pill */}
-                    <View style={styles.glucoseBox}>
-                      <FontAwesome name="tint" size={16} color="#E67E22" />
-                      <Text style={styles.glucoseValue}>{latest.glucose}</Text>
-                      <Text style={styles.glucoseLabel}>mg/dL</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.bpBreakdown}>
-                    <View style={styles.bpBreakdownItem}>
-                      <Text style={styles.bpBreakdownNum}>{latest.systolic}</Text>
-                      <Text style={styles.bpBreakdownLbl}>Systolic</Text>
-                    </View>
-                    <View style={styles.bpDivider} />
-                    <View style={styles.bpBreakdownItem}>
-                      <Text style={styles.bpBreakdownNum}>{latest.diastolic}</Text>
-                      <Text style={styles.bpBreakdownLbl}>Diastolic</Text>
-                    </View>
-                    <View style={styles.bpDivider} />
-                    {showMAP ? (
-                      <View style={styles.bpBreakdownItem}>
-                        <Text style={[styles.bpBreakdownNum, { color: status.color }]}>
-                          {mapValue}
-                        </Text>
-                        <Text style={styles.bpBreakdownLbl}>MAP</Text>
+                        <Text style={styles.scriptTitle}>Advocacy Script</Text>
                       </View>
-                    ) : (
-                      <View style={styles.bpBreakdownItem}>
-                        <Text style={styles.bpBreakdownNum}>
-                          {latest.a1c !== null ? `${latest.a1c}%` : '—'}
-                        </Text>
-                        <Text style={styles.bpBreakdownLbl}>A1C</Text>
+                      <View style={styles.scriptBadge}>
+                        <Text style={styles.scriptBadgeText}>For your doctor</Text>
                       </View>
-                    )}
-                  </View>
-                </View>
-
-                {/* Warning Alert */}
-                <View style={[styles.alertCard, { backgroundColor: status.bgColor, borderColor: status.borderColor }]}>
-                  <View style={styles.alertHeader}>
-                    <FontAwesome name={status.icon} size={20} color={status.color} />
-                    <View style={styles.alertTitleGroup}>
-                      <Text style={[styles.alertLabel, { color: status.color }]}>{status.label}</Text>
-                      <Text style={[styles.alertSublabel, { color: status.color }]}>{status.sublabel}</Text>
                     </View>
-                  </View>
-                  <Text style={styles.alertBody}>{bodyText}</Text>
-                </View>
 
-                {/* What this means */}
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoTitle}>What do these numbers mean?</Text>
-                  <View style={styles.infoRow}>
-                    <View style={[styles.infoIndicator, { backgroundColor: status.color }]} />
-                    <Text style={styles.infoText}>
-                      <Text style={styles.infoBold}>{latest.systolic} (Systolic)</Text>
-                      {' '}— the pressure when your heart beats. ACOG flags ≥ 140 as gestational hypertension.
+                    <Text style={styles.scriptText}>
+                      {scriptExpanded
+                        ? buildAdvocacyScript(latest)
+                        : `"Hi, I'm 2 weeks postpartum and my home blood pressure readings have averaged ${latest.systolic}/${latest.diastolic} for the past 5 days, up from my baseline of 118/76.\n\n I'm concerned about postpartum preeclampsia. Can I be seen today, or should I go to the ER?"`}
                     </Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <View style={[styles.infoIndicator, { backgroundColor: status.color }]} />
-                    <Text style={styles.infoText}>
-                      <Text style={styles.infoBold}>{latest.diastolic} (Diastolic)</Text>
-                      {' '}— the pressure between beats. ACOG flags ≥ 90 as gestational hypertension.
-                    </Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <View style={[styles.infoIndicator, { backgroundColor: '#27AE60' }]} />
-                    <Text style={styles.infoText}>
-                      <Text style={styles.infoBold}>Normal in pregnancy</Text>
-                      {' '}— below 120/80. Monitor daily; trends matter more than single readings.
-                    </Text>
-                  </View>
-                </View>
+                  </TouchableOpacity>
+                </>
+              );
+            })()}
+          </>
+        )}
 
-                {/* Advocacy Script */}
-                <TouchableOpacity
-                  style={styles.scriptCard}
-                  onPress={() => setScriptExpanded(!scriptExpanded)}
-                  activeOpacity={0.85}
-                >
-                  <View style={styles.scriptHeader}>
-                    <View style={styles.scriptTitleRow}>
-                      <FontAwesome name="stethoscope" size={18} color="#6C3483" />
-                      <Text style={styles.scriptTitle}>Advocacy Script</Text>
-                    </View>
-                    <View style={styles.scriptBadge}>
-                      <Text style={styles.scriptBadgeText}>For your doctor</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.scriptSubtitle}>
-                    Tap to {scriptExpanded ? 'collapse' : 'expand'} — share at your next appointment
-                  </Text>
-
-                  {scriptExpanded && (
-                    <View style={styles.scriptBody}>
-                      <View style={styles.scriptDivider} />
-                      <Text style={styles.scriptText}>{buildAdvocacyScript(latest)}</Text>
-                    </View>
-                  )}
-
-                  <View style={styles.scriptFooter}>
-                    <FontAwesome
-                      name={scriptExpanded ? 'chevron-up' : 'chevron-down'}
-                      size={12}
-                      color="#9B59B6"
-                    />
-                  </View>
-                </TouchableOpacity>
-              </>
-            );
-          })()}
-        </>
-      )}
-
-      {/* Nudge */}
-      <View style={styles.nudgeCard}>
-        <FontAwesome name="calendar" size={16} color="#2471A3" />
-        <Text style={styles.nudgeText}>
-          {logs.length === 0
-            ? 'Log your first reading in the '
-            : 'Track your next reading in the '}
-          <Text style={styles.nudgeBold}>Log tab</Text>
-          {logs.length > 0 && `. You have ${logs.length} reading${logs.length > 1 ? 's' : ''} logged.`}
-        </Text>
-      </View>
-
-      <View style={styles.bottomSpacer} />
-    </ScrollView>
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#F8F4F9' },
+  screenWrap: { flex: 1 },
+  scroll: { flex: 1 },
   container: { padding: 20, paddingBottom: 130 },
 
+  // Header
   header: { marginBottom: 20, marginTop: 4 },
-  greeting: { fontSize: 28, fontWeight: '600', color: '#1A1A2E', letterSpacing: -0.5 },
-  headerTitle: { fontSize: 13, color: '#9B59B6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 6 },
-  headerSub: { fontSize: 14, color: '#666', marginTop: 2 },
+  dateText: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    marginBottom: 4,
+  },
+  greeting: {
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: Colors.textDark,
+  },
+  headerTitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 23,
+    color: Colors.textWine,
+    lineHeight: 30,
+    marginTop: 4,
+  },
 
   // Empty state
   emptyCard: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 32,
-    alignItems: 'center', gap: 12, marginBottom: 14,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    padding: 32,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 14,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E' },
-  emptyBody: { fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 21 },
-  emptyBold: { fontWeight: '700', color: '#9B59B6' },
-
-  // Reading card
-  readingCard: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 14,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07, shadowRadius: 8, elevation: 3,
+  emptyTitle: {
+    fontFamily: Fonts.semibold,
+    fontSize: 18,
+    color: Colors.textDark,
   },
-  readingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  readingMain: { flex: 1 },
-  bpLabel: { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 4 },
-  bpValueTouchable: { alignSelf: 'flex-start' },
-  bpValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
-  bpValue: { fontSize: 48, fontWeight: '700', lineHeight: 52 },
-  bpSwapIcon: { marginBottom: 10, opacity: 0.55 },
-  bpUnit: { fontSize: 14, color: '#999', marginBottom: 8 },
-  bpTimestamp: { fontSize: 12, color: '#aaa', marginTop: 2 },
-
-  glucoseBox: { alignItems: 'center', backgroundColor: '#FFF8F0', borderRadius: 12, padding: 12, gap: 2 },
-  glucoseValue: { fontSize: 22, fontWeight: '700', color: '#E67E22', marginTop: 4 },
-  glucoseLabel: { fontSize: 11, color: '#999' },
-
-  bpBreakdown: {
-    flexDirection: 'row', marginTop: 16,
-    borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 14,
+  emptyBody: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 21,
   },
-  bpBreakdownItem: { flex: 1, alignItems: 'center' },
-  bpBreakdownNum: { fontSize: 20, fontWeight: '600', color: '#333' },
-  bpBreakdownLbl: { fontSize: 11, color: '#999', marginTop: 2 },
-  bpDivider: { width: 1, backgroundColor: '#F0F0F0' },
+  emptyBold: { fontFamily: Fonts.semibold, color: Colors.wine },
 
-  // Alert card
-  alertCard: { borderRadius: 14, borderWidth: 1.5, padding: 16, marginBottom: 14 },
-  alertHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  alertTitleGroup: { flex: 1 },
-  alertLabel: { fontSize: 15, fontWeight: '700' },
-  alertSublabel: { fontSize: 12, opacity: 0.75, marginTop: 1 },
-  alertBody: { fontSize: 14, color: '#444', lineHeight: 21 },
+  // Diagnostic overview card
+  diagnosticCard: {
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    padding: 15,
+    marginBottom: 15,
+  },
+  diagnosticRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  diagnosticLeft: { flex: 1 },
+  bpLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: Colors.textDark,
+    marginBottom: 4,
+  },
+  bpValueRow: { flexDirection: 'row', alignItems: 'baseline' },
+  bpValue: {
+    fontFamily: Fonts.regular,
+    fontSize: 40,
+    color: Colors.textDark,
+    lineHeight: 48,
+  },
+  bpUnit: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textDark,
+  },
+  a1cText: {
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: Colors.black,
+    marginTop: 8,
+  },
+  glucoseBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 70,
+    height: 100,
+    backgroundColor: Colors.ivory,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    gap: 2,
+  },
+  glucoseValue: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textDark,
+  },
+  glucoseLabel: {
+    fontFamily: Fonts.light,
+    fontSize: 10,
+    color: Colors.black,
+  },
+
+  // Mini chart cards
+  miniChartRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 15,
+    marginBottom: 15,
+  },
+  miniChartCard: {
+    flex: 1,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderSubtle,
+    padding: 6,
+    height: 89,
+  },
+  miniChartLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 10,
+    color: Colors.textWine,
+  },
+  miniChartPlaceholder: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 8,
+    paddingHorizontal: 4,
+  },
+  miniChartLine: {
+    height: 2,
+    backgroundColor: Colors.borderCard,
+    borderRadius: 1,
+  },
 
   // Info card
   infoCard: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 14,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    padding: 11,
+    marginBottom: 15,
   },
-  infoTitle: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 12 },
-  infoRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 10 },
-  infoIndicator: { width: 8, height: 8, borderRadius: 4, marginTop: 5, flexShrink: 0 },
-  infoText: { flex: 1, fontSize: 13, color: '#555', lineHeight: 19 },
-  infoBold: { fontWeight: '600', color: '#333' },
+  infoTitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.black,
+    marginBottom: 8,
+  },
+  infoBody: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    lineHeight: 19,
+  },
 
-  // Advocacy script
+  // Advocacy script card
   scriptCard: {
-    backgroundColor: '#FAF0FF', borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#D7BDE2', padding: 16, marginBottom: 14,
+    backgroundColor: Colors.burgundy,
+    borderRadius: 10,
+    padding: 20,
+    paddingTop: 19,
+    paddingBottom: 40,
+    marginBottom: 14,
   },
-  scriptHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  scriptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
   scriptTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  scriptTitle: { fontSize: 15, fontWeight: '700', color: '#6C3483' },
-  scriptBadge: { backgroundColor: '#D7BDE2', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
-  scriptBadgeText: { fontSize: 11, color: '#6C3483', fontWeight: '600' },
-  scriptSubtitle: { fontSize: 12, color: '#9B59B6', marginBottom: 4 },
-  scriptBody: { marginTop: 4 },
-  scriptDivider: { height: 1, backgroundColor: '#D7BDE2', marginVertical: 12 },
-  scriptText: { fontSize: 13.5, color: '#4A235A', lineHeight: 22, fontStyle: 'italic' },
-  scriptFooter: { alignItems: 'center', marginTop: 10 },
-
-  // Nudge
-  nudgeCard: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    backgroundColor: '#EBF5FB', borderRadius: 12, padding: 14, gap: 10,
+  scriptDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  nudgeText: { flex: 1, fontSize: 13, color: '#1A5276', lineHeight: 19 },
-  nudgeBold: { fontWeight: '700' },
+  scriptDotInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  scriptTitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textLight,
+  },
+  scriptBadge: {
+    backgroundColor: Colors.blush,
+    borderRadius: 25,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+  },
+  scriptBadgeText: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.burgundy,
+  },
+  scriptText: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textLight,
+    lineHeight: 22,
+  },
 
   bottomSpacer: { height: 24 },
 });

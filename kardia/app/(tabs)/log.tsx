@@ -10,10 +10,12 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useHealth, LogEntry, MealTiming } from '@/context/HealthContext';
 import { getBPStatus, getGlucoseStatus } from '@/utils/healthColors';
+import { Colors, Fonts } from '@/constants/theme';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -35,7 +37,7 @@ function NumericInput({
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
-      placeholderTextColor="#C5BAD0"
+      placeholderTextColor={Colors.borderCard}
       keyboardType="numeric"
       maxLength={maxLength}
       returnKeyType="done"
@@ -64,7 +66,7 @@ function LogCard({ entry, onEdit }: LogCardProps) {
             onPress={() => onEdit(entry)}
             activeOpacity={0.7}
           >
-            <FontAwesome name="pencil" size={12} color="#6C3483" />
+            <FontAwesome name="pencil" size={12} color={Colors.wine} />
             <Text style={styles.editBtnText}>Edit</Text>
           </TouchableOpacity>
         </View>
@@ -91,9 +93,9 @@ function LogCard({ entry, onEdit }: LogCardProps) {
           </View>
           {entry.a1c !== null && (
             <View style={styles.logMetaItem}>
-              <FontAwesome name="flask" size={11} color="#2471A3" />
+              <FontAwesome name="flask" size={11} color={Colors.burgundy} />
               <Text style={styles.logMetaLabel}>A1C</Text>
-              <Text style={[styles.logMetaValue, { color: '#2471A3' }]}>
+              <Text style={[styles.logMetaValue, { color: Colors.burgundy }]}>
                 {entry.a1c}%
               </Text>
             </View>
@@ -181,12 +183,12 @@ export default function LogScreen() {
 
       {editingEntry && (
         <View style={styles.editBanner}>
-          <FontAwesome name="pencil-square-o" size={14} color="#6C3483" />
+          <FontAwesome name="pencil-square-o" size={14} color={Colors.wine} />
           <Text style={styles.editBannerText} numberOfLines={1}>
             Editing: {editingEntry.date}
           </Text>
           <TouchableOpacity onPress={cancelEdit} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <FontAwesome name="times" size={16} color="#6C3483" />
+            <FontAwesome name="times" size={16} color={Colors.wine} />
           </TouchableOpacity>
         </View>
       )}
@@ -274,117 +276,265 @@ export default function LogScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={88}
     >
-      <FlatList
-        ref={listRef}
-        style={styles.scroll}
-        contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
-        data={logs}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={ListHeader}
-        renderItem={({ item }) => (
-          <LogCard entry={item} onEdit={populateForm} />
-        )}
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-        ListFooterComponent={<View style={{ height: 32 }} />}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={styles.flex}>
+        <LinearGradient
+          colors={['#FBF7F0', '#F5EFE6', '#F0DDD0']}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <FlatList
+          ref={listRef}
+          style={styles.scroll}
+          contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
+          data={logs}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={ListHeader}
+          renderItem={({ item }) => (
+            <LogCard entry={item} onEdit={populateForm} />
+          )}
+          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          ListFooterComponent={<View style={{ height: 32 }} />}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const PURPLE = '#9B59B6';
-
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scroll: { flex: 1, backgroundColor: '#F8F4F9' },
+  scroll: { flex: 1 },
   container: { padding: 20, paddingBottom: 130 },
 
   header: { marginBottom: 16, marginTop: 4 },
-  headerEyebrow: { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 },
-  headerTitle: { fontSize: 26, fontWeight: '700', color: '#1A1A2E', marginTop: 2 },
-  headerSub: { fontSize: 13, color: '#666', marginTop: 4, lineHeight: 19 },
+  headerEyebrow: {
+    fontFamily: Fonts.semibold,
+    fontSize: 15,
+    color: 'rgba(140,58,77,0.5)',
+    letterSpacing: 0.5,
+  },
+  headerTitle: {
+    fontFamily: Fonts.semibold,
+    fontSize: 25,
+    color: Colors.textDark,
+    marginTop: 2,
+  },
+  headerSub: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    marginTop: 4,
+    lineHeight: 19,
+  },
 
   editBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#F5EEF8', borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#D7BDE2',
-    paddingVertical: 10, paddingHorizontal: 14, marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.blush,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
   },
-  editBannerText: { flex: 1, fontSize: 13, color: '#6C3483', fontWeight: '500' },
+  editBannerText: {
+    flex: 1,
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.wine,
+  },
 
   formCard: {
-    backgroundColor: '#fff', borderRadius: 18, padding: 20, marginBottom: 22,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07, shadowRadius: 10, elevation: 4,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    padding: 20,
+    marginBottom: 22,
   },
   sectionLabel: {
-    fontSize: 13, fontWeight: '700', color: '#444',
-    textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 10,
+    fontFamily: Fonts.semibold,
+    fontSize: 13,
+    color: Colors.textDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 10,
   },
-  optionalTag: { fontSize: 11, fontWeight: '400', color: '#aaa', textTransform: 'none', letterSpacing: 0 },
+  optionalTag: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+    textTransform: 'none',
+    letterSpacing: 0,
+  },
   row: { flexDirection: 'row', gap: 12 },
   halfField: { flex: 1 },
-  fieldLabel: { fontSize: 12, color: '#888', marginBottom: 6, fontWeight: '500' },
+  fieldLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+    marginBottom: 6,
+  },
   input: {
-    backgroundColor: '#F9F6FC', borderWidth: 1.5, borderColor: '#E8E0EE',
-    borderRadius: 12, height: 48, paddingHorizontal: 14,
-    fontSize: 17, fontWeight: '600', color: '#1A1A2E',
+    backgroundColor: Colors.cream,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    borderRadius: 10,
+    height: 48,
+    paddingHorizontal: 14,
+    fontFamily: Fonts.semibold,
+    fontSize: 17,
+    color: Colors.textDark,
   },
 
   toggle: {
-    flexDirection: 'row', backgroundColor: '#F3EEF8',
-    borderRadius: 12, height: 48, overflow: 'hidden',
+    flexDirection: 'row',
+    backgroundColor: Colors.cream,
+    borderRadius: 10,
+    height: 48,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
   },
-  toggleOption: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 10 },
-  toggleActive: { backgroundColor: PURPLE, margin: 3, borderRadius: 9 },
-  toggleText: { fontSize: 12, fontWeight: '600', color: '#9B59B6' },
-  toggleTextActive: { color: '#fff' },
+  toggleOption: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  toggleActive: {
+    backgroundColor: Colors.wine,
+    margin: 3,
+    borderRadius: 7,
+  },
+  toggleText: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.wine,
+  },
+  toggleTextActive: { color: Colors.cream },
 
-  divider: { height: 1, backgroundColor: '#F0EBF5', marginVertical: 18 },
-  a1cHint: { fontSize: 11, color: '#bbb', marginTop: 6, lineHeight: 16 },
+  divider: { height: 1, backgroundColor: Colors.borderCard, marginVertical: 18 },
+  a1cHint: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 6,
+    lineHeight: 16,
+  },
 
   saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, backgroundColor: PURPLE, borderRadius: 14, height: 52, marginTop: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.wine,
+    borderRadius: 10,
+    height: 52,
+    marginTop: 22,
   },
-  saveBtnDisabled: { backgroundColor: '#D5C9E0' },
-  saveBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  saveBtnDisabled: { backgroundColor: Colors.blush },
+  saveBtnText: {
+    fontFamily: Fonts.bold,
+    fontSize: 16,
+    color: Colors.cream,
+  },
 
   historyHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'baseline', marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 12,
   },
-  historyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E' },
-  historyCount: { fontSize: 12, color: '#aaa' },
+  historyTitle: {
+    fontFamily: Fonts.semibold,
+    fontSize: 18,
+    color: Colors.textDark,
+  },
+  historyCount: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
 
   logCard: {
-    flexDirection: 'row', borderRadius: 14, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+    flexDirection: 'row',
+    borderRadius: 10,
+    overflow: 'hidden',
+    shadowColor: Colors.burgundy,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   logBar: { width: 5 },
   logBody: { flex: 1, padding: 14 },
   logHeaderRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
   },
-  logDate: { fontSize: 11, color: '#999', flex: 1, marginRight: 8 },
+  logDate: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+    flex: 1,
+    marginRight: 8,
+  },
   editBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#F0E8F8', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.blush,
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
   },
-  editBtnText: { fontSize: 12, color: '#6C3483', fontWeight: '600' },
+  editBtnText: {
+    fontFamily: Fonts.semibold,
+    fontSize: 12,
+    color: Colors.wine,
+  },
 
   logBPRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 8 },
-  logBPValue: { fontSize: 26, fontWeight: '700' },
-  logBPUnit: { fontSize: 13, color: '#aaa', alignSelf: 'flex-end', marginBottom: 2 },
-  logBadge: { borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-end', marginBottom: 2 },
-  logBadgeText: { fontSize: 11, fontWeight: '700' },
+  logBPValue: {
+    fontFamily: Fonts.bold,
+    fontSize: 26,
+  },
+  logBPUnit: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    alignSelf: 'flex-end',
+    marginBottom: 2,
+  },
+  logBadge: {
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: 'flex-end',
+    marginBottom: 2,
+  },
+  logBadgeText: {
+    fontFamily: Fonts.bold,
+    fontSize: 11,
+  },
 
   logMetaRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   logMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  logMetaLabel: { fontSize: 11, color: '#999' },
-  logMetaValue: { fontSize: 12, fontWeight: '700' },
+  logMetaLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  logMetaValue: {
+    fontFamily: Fonts.bold,
+    fontSize: 12,
+  },
 });

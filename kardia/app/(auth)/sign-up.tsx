@@ -12,10 +12,13 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSignUp } from '@clerk/clerk-expo';
+
+import { Colors, Fonts } from '@/constants/theme';
 
 // ─── OAuth button ─────────────────────────────────────────────────────────────
 
@@ -72,154 +75,161 @@ export default function SignUpScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
+    <View style={styles.screenWrap}>
+      <LinearGradient
+        colors={['#FBF7F0', '#F5EFE6', '#F0DDD0']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
           style={styles.flex}
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* Back */}
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <FontAwesome name="chevron-left" size={14} color="#9B59B6" />
-            <Text style={styles.backText}>Back</Text>
-          </TouchableOpacity>
+          <ScrollView
+            style={styles.flex}
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Back */}
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+              <FontAwesome name="chevron-left" size={14} color={Colors.wine} />
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
 
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Create your account</Text>
-            <Text style={styles.subtitle}>
-              Start understanding your heart health today.
-            </Text>
-          </View>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Create your account</Text>
+              <Text style={styles.subtitle}>
+                Start understanding your heart health today.
+              </Text>
+            </View>
 
-          {/* Email / Password form */}
-          <View style={styles.form}>
-            {/* Email */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Email address</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={(t) => { setEmail(t); setError(''); }}
-                placeholder="you@example.com"
-                placeholderTextColor="#C5BAD0"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
+            {/* Email / Password form */}
+            <View style={styles.form}>
+              {/* Email */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Email address</Text>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={(t) => { setEmail(t); setError(''); }}
+                  placeholder="you@example.com"
+                  placeholderTextColor={Colors.borderCard}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                />
+              </View>
+
+              {/* Password */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Password</Text>
+                <View style={styles.passwordRow}>
+                  <TextInput
+                    style={[styles.input, styles.passwordInput]}
+                    value={password}
+                    onChangeText={(t) => { setPassword(t); setError(''); }}
+                    placeholder="At least 8 characters"
+                    placeholderTextColor={Colors.borderCard}
+                    secureTextEntry={!showPass}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="done"
+                    onSubmitEditing={handleSignUp}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeBtn}
+                    onPress={() => setShowPass((v) => !v)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <FontAwesome
+                      name={showPass ? 'eye-slash' : 'eye'}
+                      size={16}
+                      color={Colors.borderCard}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.passwordHint}>Minimum 8 characters</Text>
+              </View>
+
+              {/* Error */}
+              {error !== '' && (
+                <View style={styles.errorBox}>
+                  <FontAwesome name="exclamation-circle" size={14} color={Colors.danger} />
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              {/* Submit */}
+              <TouchableOpacity
+                style={[styles.primaryBtn, (!isValid || loading) && styles.primaryBtnDisabled]}
+                onPress={handleSignUp}
+                disabled={!isValid || loading}
+                activeOpacity={0.85}
+              >
+                {loading
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.primaryBtnText}>Create Account</Text>
+                }
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerLabel}>or sign up with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* OAuth */}
+            <View style={styles.oauthGroup}>
+              <OAuthButton
+                label="Continue with Google"
+                icon={<Ionicons name="logo-google" size={19} color="#EA4335" />}
+                onPress={handleOAuth}
+                style={styles.oauthGoogle}
+                textStyle={styles.oauthGoogleText}
+              />
+              <OAuthButton
+                label="Continue with Apple"
+                icon={<Ionicons name="logo-apple" size={20} color="#fff" />}
+                onPress={handleOAuth}
+                style={styles.oauthApple}
+                textStyle={styles.oauthDarkText}
+              />
+              <OAuthButton
+                label="Continue with Facebook"
+                icon={<Ionicons name="logo-facebook" size={20} color="#fff" />}
+                onPress={handleOAuth}
+                style={styles.oauthFacebook}
+                textStyle={styles.oauthDarkText}
               />
             </View>
 
-            {/* Password */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Password</Text>
-              <View style={styles.passwordRow}>
-                <TextInput
-                  style={[styles.input, styles.passwordInput]}
-                  value={password}
-                  onChangeText={(t) => { setPassword(t); setError(''); }}
-                  placeholder="At least 8 characters"
-                  placeholderTextColor="#C5BAD0"
-                  secureTextEntry={!showPass}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSignUp}
-                />
-                <TouchableOpacity
-                  style={styles.eyeBtn}
-                  onPress={() => setShowPass((v) => !v)}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <FontAwesome
-                    name={showPass ? 'eye-slash' : 'eye'}
-                    size={16}
-                    color="#C5BAD0"
-                  />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.passwordHint}>Minimum 8 characters</Text>
+            {/* Sign in link */}
+            <View style={styles.switchRow}>
+              <Text style={styles.switchText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => router.replace('/(auth)/sign-in')}>
+                <Text style={styles.switchLink}> Log In</Text>
+              </TouchableOpacity>
             </View>
 
-            {/* Error */}
-            {error !== '' && (
-              <View style={styles.errorBox}>
-                <FontAwesome name="exclamation-circle" size={14} color="#C0392B" />
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            )}
-
-            {/* Submit */}
-            <TouchableOpacity
-              style={[styles.primaryBtn, (!isValid || loading) && styles.primaryBtnDisabled]}
-              onPress={handleSignUp}
-              disabled={!isValid || loading}
-              activeOpacity={0.85}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.primaryBtnText}>Create Account</Text>
-              }
-            </TouchableOpacity>
-          </View>
-
-          {/* Divider */}
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerLabel}>or sign up with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* OAuth */}
-          <View style={styles.oauthGroup}>
-            <OAuthButton
-              label="Continue with Google"
-              icon={<Ionicons name="logo-google" size={19} color="#EA4335" />}
-              onPress={handleOAuth}
-              style={styles.oauthGoogle}
-              textStyle={styles.oauthGoogleText}
-            />
-            <OAuthButton
-              label="Continue with Apple"
-              icon={<Ionicons name="logo-apple" size={20} color="#fff" />}
-              onPress={handleOAuth}
-              style={styles.oauthApple}
-              textStyle={styles.oauthDarkText}
-            />
-            <OAuthButton
-              label="Continue with Facebook"
-              icon={<Ionicons name="logo-facebook" size={20} color="#fff" />}
-              onPress={handleOAuth}
-              style={styles.oauthFacebook}
-              textStyle={styles.oauthDarkText}
-            />
-          </View>
-
-          {/* Sign in link */}
-          <View style={styles.switchRow}>
-            <Text style={styles.switchText}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => router.replace('/(auth)/sign-in')}>
-              <Text style={styles.switchLink}> Log In</Text>
-            </TouchableOpacity>
-          </View>
-
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const PURPLE = '#9B59B6';
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F8F4F9' },
+  screenWrap: { flex: 1 },
+  safe: { flex: 1 },
   flex: { flex: 1 },
   container: { padding: 24, paddingBottom: 40 },
 
@@ -227,25 +237,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     gap: 6, marginBottom: 28, alignSelf: 'flex-start',
   },
-  backText: { fontSize: 15, color: PURPLE, fontWeight: '500' },
+  backText: { fontFamily: Fonts.regular, fontSize: 15, color: Colors.wine },
 
   header: { marginBottom: 28, gap: 6 },
-  title:    { fontSize: 30, fontWeight: '700', color: '#1A1A2E', letterSpacing: -0.5 },
-  subtitle: { fontSize: 15, color: '#666', lineHeight: 22 },
+  title: {
+    fontFamily: Fonts.bold,
+    fontSize: 30,
+    color: Colors.textDark,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textMuted,
+    lineHeight: 22,
+  },
 
   // Form
   form: { gap: 18, marginBottom: 28 },
   fieldGroup: { gap: 7 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#555' },
+  fieldLabel: {
+    fontFamily: Fonts.semibold,
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
   input: {
-    backgroundColor: '#fff',
-    borderWidth: 1.5,
-    borderColor: '#E8E0EE',
-    borderRadius: 14,
+    backgroundColor: Colors.ivory,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    borderRadius: 10,
     height: 52,
     paddingHorizontal: 16,
+    fontFamily: Fonts.regular,
     fontSize: 16,
-    color: '#1A1A2E',
+    color: Colors.textDark,
   },
   passwordRow: { position: 'relative' },
   passwordInput: { paddingRight: 48 },
@@ -253,47 +278,80 @@ const styles = StyleSheet.create({
     position: 'absolute', right: 14,
     top: 0, bottom: 0, justifyContent: 'center',
   },
-  passwordHint: { fontSize: 11, color: '#bbb', marginTop: 4 },
+  passwordHint: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 4,
+  },
 
   errorBox: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#FDEDEC', borderRadius: 10,
-    padding: 12, borderWidth: 1, borderColor: '#FADBD8',
+    backgroundColor: Colors.dangerBg, borderRadius: 10,
+    padding: 12, borderWidth: 1, borderColor: Colors.dangerBorder,
   },
-  errorText: { flex: 1, fontSize: 13, color: '#C0392B', lineHeight: 18 },
+  errorText: {
+    flex: 1,
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.danger,
+    lineHeight: 18,
+  },
 
   primaryBtn: {
-    backgroundColor: PURPLE, borderRadius: 16, height: 56,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: PURPLE, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25, shadowRadius: 10, elevation: 5,
+    backgroundColor: Colors.wine,
+    borderRadius: 10,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.wine,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  primaryBtnDisabled: { backgroundColor: '#D5C9E0', shadowOpacity: 0 },
-  primaryBtnText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  primaryBtnDisabled: { backgroundColor: Colors.blush, shadowOpacity: 0 },
+  primaryBtnText: {
+    fontFamily: Fonts.bold,
+    fontSize: 17,
+    color: Colors.cream,
+  },
 
   // Divider
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E8E0EE' },
-  dividerLabel: { fontSize: 12, color: '#aaa', fontWeight: '500' },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.borderCard },
+  dividerLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
 
   // OAuth
   oauthGroup: { gap: 12, marginBottom: 32 },
   oauthBtn: {
     flexDirection: 'row', alignItems: 'center',
-    height: 52, borderRadius: 14, paddingHorizontal: 20, gap: 12,
+    height: 52, borderRadius: 10, paddingHorizontal: 20, gap: 12,
   },
   oauthIcon: { width: 24, alignItems: 'center' },
-  oauthText: { fontSize: 15, fontWeight: '600' },
+  oauthText: { fontFamily: Fonts.semibold, fontSize: 15 },
 
-  oauthGoogle: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#E0D8E8' },
-  oauthGoogleText: { color: '#333' },
+  oauthGoogle: { backgroundColor: Colors.ivory, borderWidth: 1, borderColor: Colors.borderCard },
+  oauthGoogleText: { color: Colors.textDark },
 
-  oauthApple: { backgroundColor: '#1A1A2E' },
+  oauthApple: { backgroundColor: Colors.burgundy },
   oauthFacebook: { backgroundColor: '#1877F2' },
-  oauthDarkText: { color: '#fff' },
+  oauthDarkText: { color: Colors.cream },
 
   // Switch
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  switchText: { fontSize: 14, color: '#888' },
-  switchLink: { fontSize: 14, color: PURPLE, fontWeight: '700' },
+  switchText: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: Colors.textMuted,
+  },
+  switchLink: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: Colors.wine,
+  },
 });

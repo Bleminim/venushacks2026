@@ -8,10 +8,12 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart } from 'react-native-gifted-charts';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useHealth } from '@/context/HealthContext';
+import { Colors, Fonts } from '@/constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,15 +79,11 @@ export default function InsightsScreen() {
   const chartData = useMemo(() => {
     if (!logs || logs.length === 0) return [];
 
-    // 1. Find anchor time — latest valid timestamp in the logs array.
-    //    Uses logMs() to handle our "May 14, 2026 · 8:22 AM" format safely.
     const validTimes = logs
       .map((l) => logMs(l.date))
       .filter((t) => !isNaN(t));
     const anchorTime = validTimes.length > 0 ? Math.max(...validTimes) : Date.now();
 
-    // 2. Determine cutoff time mathematically via switch.
-    //    'ALL' → cutoffTime = 0, so every entry with a real timestamp passes.
     let cutoffTime = 0;
     const ONE_DAY = 24 * 60 * 60 * 1000;
     switch (range) {
@@ -97,27 +95,25 @@ export default function InsightsScreen() {
       default:    cutoffTime = 0;
     }
 
-    // 3. Filter by date, sort oldest-first, then map safely.
-    //    Number() coercion ensures no strings slip into the chart library.
     const processedData = logs
       .filter((log) => {
         const t = logMs(log.date);
         return !isNaN(t) && t >= cutoffTime;
       })
       .slice()
-      .reverse()                         // oldest-first → left-to-right on chart
+      .reverse()
       .map((log) => ({
         value:     metric === 'bp' ? Number(log.systolic) : Number(log.glucose),
-        diastolic: Number(log.diastolic), // carried for BP tooltip (sys/dia pair)
+        diastolic: Number(log.diastolic),
         date:      log.date,
-        label:     '',                    // suppresses gifted-charts x-axis labels
+        label:     '',
       }))
       .filter((item) => !isNaN(item.value));
 
     return processedData;
   }, [logs, metric, range]);
 
-  // ── Latest-reading header (shown before user scrubs) ──────────────────────
+  // ── Latest-reading header ──────────────────────────────────────────
   const latestPoint = chartData[chartData.length - 1] ?? null;
 
   const latestValStr = latestPoint
@@ -134,8 +130,8 @@ export default function InsightsScreen() {
     setHeaderDate(null);
   }
 
-  const lineColor = metric === 'bp' ? '#9B59B6' : '#E67E22';
-  const fillColor = metric === 'bp' ? '#C39BD3' : '#F0B27A';
+  const lineColor = metric === 'bp' ? Colors.wine : Colors.burgundy;
+  const fillColor = metric === 'bp' ? '#D4A99A' : '#E8C4B8';
 
   const dataMax = chartData.length
     ? Math.max(...chartData.map((d) => d.value)) + (metric === 'bp' ? 14 : 18)
@@ -145,247 +141,382 @@ export default function InsightsScreen() {
     : 80;
 
   return (
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* ── Page header ── */}
-      <View style={styles.pageHeader}>
-        <Text style={styles.eyebrow}>Your Health, Over Time</Text>
-        <Text style={styles.title}>Insights</Text>
-      </View>
+    <View style={styles.screenWrap}>
+      {/* Background gradient matching Figma */}
+      <LinearGradient
+        colors={['#FBF7F0', '#F5EFE6', '#F0DDD0', '#E8C4B8']}
+        start={{ x: 0.3, y: 0 }}
+        end={{ x: 0.7, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
 
-      {/* ── Metric toggle ── */}
-      <View style={styles.metricToggle}>
-        {(['bp', 'glucose'] as Metric[]).map((m) => (
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.container, { paddingTop: top + 20 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Page header ── */}
+        <View style={styles.pageHeader}>
+          <Text style={styles.eyebrow}>Your Health, Overtime</Text>
+          <Text style={styles.title}>Insights</Text>
+        </View>
+
+        {/* ── Metric toggle ── */}
+        <View style={styles.metricToggle}>
+          {/* Blood Pressure tab */}
           <TouchableOpacity
-            key={m}
             style={[
               styles.metricTab,
-              metric === m && (m === 'bp' ? styles.metricTabBP : styles.metricTabGlc),
+              metric === 'bp' && styles.metricTabActive,
             ]}
-            onPress={() => { setMetric(m); resetHeader(); }}
+            onPress={() => { setMetric('bp'); resetHeader(); }}
             activeOpacity={0.8}
           >
             <FontAwesome
-              name={m === 'bp' ? 'heartbeat' : 'tint'}
+              name="heart"
               size={13}
-              color={metric === m ? '#fff' : '#888'}
+              color={metric === 'bp' ? Colors.cream : 'rgba(0,0,0,0.3)'}
             />
-            <Text style={[styles.metricTabText, metric === m && styles.metricTabTextActive]}>
-              {m === 'bp' ? 'Blood Pressure' : 'Glucose'}
+            <Text style={[
+              styles.metricTabText,
+              metric === 'bp' && styles.metricTabTextActive,
+            ]}>
+              Blood Pressure
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
 
-      {/* ── Chart card ── */}
-      <View style={styles.chartCard}>
-
-        {/* Dynamic header — updates live while scrubbing */}
-        <View style={styles.dynamicHeader}>
-          <Text style={[styles.dynamicValue, { color: lineColor }]}>{displayVal}</Text>
-          {displayDate ? (
-            <Text style={styles.dynamicDate}>{shortDate(displayDate)}</Text>
-          ) : null}
-        </View>
-
-        {/* Time range pills */}
-        <View style={styles.rangePills}>
-          {RANGES.map((r) => (
-            <TouchableOpacity
-              key={r}
-              style={[styles.pill, range === r && styles.pillActive]}
-              onPress={() => { setRange(r); resetHeader(); }}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.pillText, range === r && styles.pillTextActive]}>{r}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Chart or empty state */}
-        {chartData.length === 0 ? (
-          <View style={styles.emptyChart}>
-            <FontAwesome name="line-chart" size={30} color="#D5C9E0" />
-            <Text style={styles.emptyTitle}>No readings recorded yet.</Text>
-            <Text style={styles.emptySub}>Switch to a wider range or log more readings.</Text>
-          </View>
-        ) : (
-          <View style={styles.chartWrap}>
-            <LineChart
-              areaChart
-              curved
-              data={chartData}
-              width={chartW - 40}
-              height={200}
-              // Pack points tightly to fill available width (Robinhood sweep)
-              spacing={Math.max(2, Math.floor((chartW - 60) / Math.max(chartData.length - 1, 1)))}
-              // Line style
-              color={lineColor}
-              thickness={2.5}
-              // Gradient fill beneath the curve
-              startFillColor={fillColor}
-              endFillColor={fillColor}
-              startOpacity={0.38}
-              endOpacity={0.01}
-              // Y scale anchored to data range
-              maxValue={dataMax}
-              minValue={dataMin}
-              noOfSections={4}
-              // Hide all axes and grid — Robinhood aesthetic
-              hideRules
-              hideYAxisText
-              yAxisThickness={0}
-              xAxisThickness={0}
-              xAxisLabelTextStyle={styles.hiddenLabel}
-              // No dots on line — continuous sweep look
-              hideDataPoints
-              dataPointsRadius={0}
-              // Interactive scrubbing
-              pointerConfig={{
-                pointerStripHeight: 175,
-                pointerStripColor: '#E0D6EA',
-                pointerStripWidth: 1.5,
-                pointerColor: lineColor,
-                radius: 5,
-                pointerLabelWidth: 140,
-                pointerLabelHeight: 50,
-                activatePointersOnLongPress: false,
-                autoAdjustPointerLabelPosition: true,
-                pointerLabelComponent: (items: any[]) => {
-                  const item = items?.[0];
-                  if (!item) return null;
-
-                  // Build display string from the data item
-                  const val = metric === 'bp'
-                    ? `${item.value}/${item.diastolic ?? '—'} mmHg`
-                    : `${item.value} mg/dL`;
-                  const date: string = item.date ?? '';
-
-                  // Schedule header state update outside the render cycle
-                  setTimeout(() => {
-                    setHeaderVal(val);
-                    setHeaderDate(date);
-                  }, 0);
-
-                  return (
-                    <View style={styles.pointerBubble}>
-                      <Text style={styles.pointerBubbleText}>{val}</Text>
-                    </View>
-                  );
-                },
-              }}
+          {/* Glucose tab */}
+          <TouchableOpacity
+            style={[
+              styles.metricTab,
+              metric === 'glucose' && styles.metricTabActive,
+            ]}
+            onPress={() => { setMetric('glucose'); resetHeader(); }}
+            activeOpacity={0.8}
+          >
+            <FontAwesome
+              name="tint"
+              size={13}
+              color={metric === 'glucose' ? Colors.cream : 'rgba(0,0,0,0.3)'}
             />
-          </View>
-        )}
-
-        {/* Footer */}
-        {chartData.length > 0 && (
-          <View style={styles.chartFooter}>
-            <FontAwesome name="info-circle" size={11} color="#C5BAD0" />
-            <Text style={styles.chartFooterText}>
-              {chartData.length} reading{chartData.length !== 1 ? 's' : ''} · Press and drag to scrub
+            <Text style={[
+              styles.metricTabText,
+              metric === 'glucose' && styles.metricTabTextActive,
+            ]}>
+              Glucose
             </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Diagnostic overview card ── */}
+        {latestPoint && (
+          <View style={styles.diagnosticCard}>
+            <View style={styles.diagnosticRow}>
+              <View style={styles.diagnosticLeft}>
+                <Text style={styles.diagLabel}>
+                  {metric === 'bp' ? 'Blood Pressure' : 'Glucose'}
+                </Text>
+                <Text style={styles.diagValue}>
+                  {metric === 'bp'
+                    ? `${latestPoint.value}/${latestPoint.diastolic} `
+                    : `${latestPoint.value} `}
+                  <Text style={styles.diagUnit}>
+                    {metric === 'bp' ? 'mmHg' : 'mg/dL'}
+                  </Text>
+                </Text>
+                <Text style={styles.diagA1c}>5.7% A1C</Text>
+              </View>
+              <View style={styles.diagGlucoseBox}>
+                <FontAwesome name="tint" size={22} color={Colors.burgundy} />
+                <Text style={styles.diagGlucoseVal}>
+                  {metric === 'bp' ? (logs[0]?.glucose ?? '—') : latestPoint.value}
+                </Text>
+                <Text style={styles.diagGlucoseUnit}>mg/dL</Text>
+              </View>
+            </View>
           </View>
         )}
-      </View>
 
-      {/* ── 20-Year Forecast card ── */}
-      <View style={styles.forecastCard}>
-        <View style={styles.forecastTitleRow}>
-          <FontAwesome name="line-chart" size={14} color="#2471A3" />
-          <Text style={styles.forecastTitle}>20-Year Heart Health Forecast</Text>
+        {/* ── Chart card ── */}
+        <View style={styles.chartCard}>
+
+          {/* Dynamic header */}
+          <View style={styles.dynamicHeader}>
+            <Text style={[styles.dynamicValue, { color: lineColor }]}>{displayVal}</Text>
+            {displayDate ? (
+              <Text style={styles.dynamicDate}>{shortDate(displayDate)}</Text>
+            ) : null}
+          </View>
+
+          {/* Time range pills */}
+          <View style={styles.rangePills}>
+            {RANGES.map((r) => (
+              <TouchableOpacity
+                key={r}
+                style={[styles.pill, range === r && styles.pillActive]}
+                onPress={() => { setRange(r); resetHeader(); }}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.pillText, range === r && styles.pillTextActive]}>{r}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Chart or empty state */}
+          {chartData.length === 0 ? (
+            <View style={styles.emptyChart}>
+              <FontAwesome name="line-chart" size={30} color={Colors.blush} />
+              <Text style={styles.emptyChartTitle}>No readings recorded yet.</Text>
+              <Text style={styles.emptySub}>Switch to a wider range or log more readings.</Text>
+            </View>
+          ) : (
+            <View style={styles.chartWrap}>
+              <LineChart
+                areaChart
+                curved
+                data={chartData}
+                width={chartW - 40}
+                height={200}
+                spacing={Math.max(2, Math.floor((chartW - 60) / Math.max(chartData.length - 1, 1)))}
+                color={lineColor}
+                thickness={2.5}
+                startFillColor={fillColor}
+                endFillColor={fillColor}
+                startOpacity={0.38}
+                endOpacity={0.01}
+                maxValue={dataMax}
+                noOfSections={4}
+                hideRules
+                hideYAxisText
+                yAxisThickness={0}
+                xAxisThickness={0}
+                xAxisLabelTextStyle={styles.hiddenLabel}
+                hideDataPoints
+                dataPointsRadius={0}
+                pointerConfig={{
+                  pointerStripHeight: 175,
+                  pointerStripColor: Colors.blush,
+                  pointerStripWidth: 1.5,
+                  pointerColor: lineColor,
+                  radius: 5,
+                  pointerLabelWidth: 140,
+                  pointerLabelHeight: 50,
+                  activatePointersOnLongPress: false,
+                  autoAdjustPointerLabelPosition: true,
+                  pointerLabelComponent: (items: any[]) => {
+                    const item = items?.[0];
+                    if (!item) return null;
+
+                    const val = metric === 'bp'
+                      ? `${item.value}/${item.diastolic ?? '—'} mmHg`
+                      : `${item.value} mg/dL`;
+                    const date: string = item.date ?? '';
+
+                    setTimeout(() => {
+                      setHeaderVal(val);
+                      setHeaderDate(date);
+                    }, 0);
+
+                    return (
+                      <View style={styles.pointerBubble}>
+                        <Text style={styles.pointerBubbleText}>{val}</Text>
+                      </View>
+                    );
+                  },
+                }}
+              />
+            </View>
+          )}
+
+          {/* Footer */}
+          {chartData.length > 0 && (
+            <View style={styles.chartFooter}>
+              <FontAwesome name="info-circle" size={11} color={Colors.borderCard} />
+              <Text style={styles.chartFooterText}>
+                {chartData.length} reading{chartData.length !== 1 ? 's' : ''} · Press and drag to scrub
+              </Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.forecastBody}>
-          Slightly elevated BP and glucose during the maternal period can compound over decades.
-          Managing them proactively now makes a measurable difference long-term.
-        </Text>
-        <View style={styles.forecastStats}>
-          <View style={styles.forecastStat}>
-            <Text style={[styles.forecastStatVal, { color: '#27AE60' }]}>15%</Text>
-            <Text style={styles.forecastStatLabel}>Healthy{'\n'}baseline</Text>
+
+        {/* ── 20-Year Forecast card ── */}
+        <View style={styles.forecastCard}>
+          <View style={styles.forecastTitleRow}>
+            <FontAwesome name="line-chart" size={14} color={Colors.burgundy} />
+            <Text style={styles.forecastTitle}>20-Year Heart Health Forecast</Text>
           </View>
-          <View style={styles.forecastDivider} />
-          <View style={styles.forecastStat}>
-            <Text style={[styles.forecastStatVal, { color: '#E67E22' }]}>~50%</Text>
-            <Text style={styles.forecastStatLabel}>Unmanaged{'\n'}trajectory</Text>
-          </View>
-          <View style={styles.forecastDivider} />
-          <View style={styles.forecastStat}>
-            <Text style={[styles.forecastStatVal, { color: '#2471A3' }]}>~19%</Text>
-            <Text style={styles.forecastStatLabel}>If managed{'\n'}proactively</Text>
+          <Text style={styles.forecastBody}>
+            Slightly elevated BP and glucose during the maternal period can compound over decades.
+            Managing them proactively now makes a measurable difference long-term.
+          </Text>
+          <View style={styles.forecastStats}>
+            <View style={styles.forecastStat}>
+              <Text style={[styles.forecastStatVal, { color: Colors.success }]}>15%</Text>
+              <Text style={styles.forecastStatLabel}>Healthy{'\n'}baseline</Text>
+            </View>
+            <View style={styles.forecastDivider} />
+            <View style={styles.forecastStat}>
+              <Text style={[styles.forecastStatVal, { color: Colors.warning }]}>~50%</Text>
+              <Text style={styles.forecastStatLabel}>Unmanaged{'\n'}trajectory</Text>
+            </View>
+            <View style={styles.forecastDivider} />
+            <View style={styles.forecastStat}>
+              <Text style={[styles.forecastStatVal, { color: Colors.burgundy }]}>~19%</Text>
+              <Text style={styles.forecastStatLabel}>If managed{'\n'}proactively</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* ── Affirmation ── */}
-      <View style={styles.affirmCard}>
-        <FontAwesome name="heart" size={16} color="#C0392B" />
-        <Text style={styles.affirmTitle}>You're already ahead.</Text>
-        <Text style={styles.affirmBody}>
-          Tracking your health today puts you in the top tier of proactive maternal care.
-          Every data point you log paints a clearer picture for your doctor — and a healthier future for you.
-        </Text>
-      </View>
+        {/* ── Affirmation ── */}
+        <View style={styles.affirmCard}>
+          <FontAwesome name="heart" size={16} color={Colors.wine} />
+          <Text style={styles.affirmTitle}>You're already ahead.</Text>
+          <Text style={styles.affirmBody}>
+            Tracking your health today puts you in the top tier of proactive maternal care.
+            Every data point you log paints a clearer picture for your doctor — and a healthier future for you.
+          </Text>
+        </View>
 
-      <View style={{ height: 24 }} />
-    </ScrollView>
+        <View style={{ height: 24 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const PURPLE = '#9B59B6';
-const ORANGE = '#E67E22';
-
 const styles = StyleSheet.create({
-  scroll:    { flex: 1, backgroundColor: '#F8F4F9' },
+  screenWrap: { flex: 1 },
+  scroll:    { flex: 1 },
   container: { padding: 20, paddingBottom: 130 },
 
   pageHeader: { marginBottom: 20, marginTop: 4 },
-  eyebrow:    { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 },
-  title:      { fontSize: 26, fontWeight: '700', color: '#1A1A2E', marginTop: 2 },
+  eyebrow: {
+    fontFamily: Fonts.semibold,
+    fontSize: 15,
+    color: 'rgba(140,58,77,0.5)',
+    letterSpacing: 0.5,
+  },
+  title: {
+    fontFamily: Fonts.semibold,
+    fontSize: 25,
+    color: Colors.textDark,
+    marginTop: 2,
+  },
 
   // Metric toggle
   metricToggle: {
     flexDirection: 'row',
-    backgroundColor: '#EDE7F6',
-    borderRadius: 14,
-    padding: 4,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    padding: 3,
     marginBottom: 16,
-    gap: 4,
+    gap: 0,
   },
   metricTab: {
-    flex: 1, flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 6,
-    paddingVertical: 10, borderRadius: 10,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
-  metricTabBP:         { backgroundColor: PURPLE },
-  metricTabGlc:        { backgroundColor: ORANGE },
-  metricTabText:       { fontSize: 13, fontWeight: '600', color: '#888' },
-  metricTabTextActive: { color: '#fff' },
+  metricTabActive: { backgroundColor: Colors.wine },
+  metricTabText: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: 'rgba(0,0,0,0.5)',
+  },
+  metricTabTextActive: { color: Colors.cream },
+
+  // Diagnostic card
+  diagnosticCard: {
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    padding: 15,
+    marginBottom: 16,
+  },
+  diagnosticRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  diagnosticLeft: { flex: 1 },
+  diagLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: Colors.textDark,
+    marginBottom: 4,
+  },
+  diagValue: {
+    fontFamily: Fonts.regular,
+    fontSize: 40,
+    color: Colors.textDark,
+    lineHeight: 48,
+  },
+  diagUnit: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textDark,
+  },
+  diagA1c: {
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: Colors.black,
+    marginTop: 8,
+  },
+  diagGlucoseBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 70,
+    height: 100,
+    backgroundColor: Colors.ivory,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    gap: 2,
+  },
+  diagGlucoseVal: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.textDark,
+  },
+  diagGlucoseUnit: {
+    fontFamily: Fonts.light,
+    fontSize: 10,
+    color: Colors.black,
+  },
 
   // Chart card
   chartCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
     paddingTop: 22,
     paddingBottom: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
-    elevation: 3,
     overflow: 'hidden',
   },
 
   // Dynamic header
   dynamicHeader: { paddingHorizontal: 20, marginBottom: 14 },
-  dynamicValue:  { fontSize: 32, fontWeight: '700', letterSpacing: -0.5 },
-  dynamicDate:   { fontSize: 13, color: '#aaa', marginTop: 3 },
+  dynamicValue: {
+    fontFamily: Fonts.bold,
+    fontSize: 32,
+    letterSpacing: -0.5,
+  },
+  dynamicDate: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.textMuted,
+    marginTop: 3,
+  },
 
   // Range pills
   rangePills: {
@@ -394,64 +525,131 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 14,
   },
-  pill:          { paddingHorizontal: 13, paddingVertical: 5, borderRadius: 20, backgroundColor: '#F3EEF8' },
-  pillActive:    { backgroundColor: PURPLE },
-  pillText:      { fontSize: 12, fontWeight: '600', color: '#888' },
-  pillTextActive:{ color: '#fff' },
+  pill: {
+    paddingHorizontal: 13,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: Colors.cream,
+  },
+  pillActive: { backgroundColor: Colors.wine },
+  pillText: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+  },
+  pillTextActive: { color: Colors.cream },
 
   // Chart
   chartWrap:   { paddingHorizontal: 16 },
   hiddenLabel: { opacity: 0, height: 0 },
 
   // Empty state
-  emptyChart: { height: 200, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 32 },
-  emptyTitle: { fontSize: 14, fontWeight: '600', color: '#C5BAD0', textAlign: 'center' },
-  emptySub:   { fontSize: 12, color: '#D5C9E0', textAlign: 'center' },
+  emptyChart: {
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 32,
+  },
+  emptyChartTitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: Colors.borderCard,
+    textAlign: 'center',
+  },
+  emptySub: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.borderCard,
+    textAlign: 'center',
+  },
 
   // Chart footer
   chartFooter: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    marginTop: 10, paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 10,
+    paddingHorizontal: 20,
   },
-  chartFooterText: { fontSize: 11, color: '#C5BAD0' },
+  chartFooterText: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.borderCard,
+  },
 
   // Pointer tooltip bubble
   pointerBubble: {
-    backgroundColor: '#1A1A2E',
+    backgroundColor: Colors.burgundy,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  pointerBubbleText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  pointerBubbleText: {
+    fontFamily: Fonts.bold,
+    fontSize: 13,
+    color: Colors.textLight,
+  },
 
   // Forecast card
   forecastCard: {
-    backgroundColor: '#EBF5FB',
-    borderRadius: 16,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
     padding: 18,
     marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#D6EAF8',
   },
   forecastTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  forecastTitle:    { fontSize: 14, fontWeight: '700', color: '#1A5276' },
-  forecastBody:     { fontSize: 12, color: '#555', lineHeight: 18, marginBottom: 16 },
-  forecastStats:    { flexDirection: 'row', alignItems: 'center' },
-  forecastStat:     { flex: 1, alignItems: 'center' },
-  forecastStatVal:  { fontSize: 22, fontWeight: '700' },
-  forecastStatLabel:{ fontSize: 10, color: '#777', textAlign: 'center', marginTop: 3, lineHeight: 14 },
-  forecastDivider:  { width: 1, height: 44, backgroundColor: '#CBE4F0' },
+  forecastTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: Colors.burgundy,
+  },
+  forecastBody: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  forecastStats: { flexDirection: 'row', alignItems: 'center' },
+  forecastStat:  { flex: 1, alignItems: 'center' },
+  forecastStatVal: {
+    fontFamily: Fonts.bold,
+    fontSize: 22,
+  },
+  forecastStatLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 10,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginTop: 3,
+    lineHeight: 14,
+  },
+  forecastDivider: { width: 1, height: 44, backgroundColor: Colors.borderCard },
 
   // Affirmation
   affirmCard: {
-    backgroundColor: '#FEF9F9',
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#FADBD8',
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.blush,
     padding: 20,
     alignItems: 'center',
     gap: 8,
   },
-  affirmTitle: { fontSize: 16, fontWeight: '700', color: '#922B21', textAlign: 'center' },
-  affirmBody:  { fontSize: 12, color: '#555', lineHeight: 19, textAlign: 'center' },
+  affirmTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 16,
+    color: Colors.burgundy,
+    textAlign: 'center',
+  },
+  affirmBody: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.textMuted,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
 });

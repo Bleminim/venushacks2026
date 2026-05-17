@@ -16,6 +16,7 @@ import { useUser } from '@clerk/clerk-expo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useCommunity, type Comment } from '@/context/CommunityContext';
+import { Colors, Fonts } from '@/constants/theme';
 
 // ─── Comment row ──────────────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ export default function ThreadScreen() {
     <View>
       {/* ── Back button ── */}
       <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-        <FontAwesome name="chevron-left" size={13} color="#9B59B6" />
+        <FontAwesome name="chevron-left" size={13} color={Colors.wine} />
         <Text style={styles.backText}>Community</Text>
       </TouchableOpacity>
 
@@ -91,8 +92,8 @@ export default function ThreadScreen() {
             )}
             <Text style={styles.authorChipText}>{post.authorName}</Text>
           </View>
-          <View style={[styles.categoryPill, { backgroundColor: '#F5EEF8' }]}>
-            <Text style={[styles.categoryPillText, { color: '#6C3483' }]}>{post.category}</Text>
+          <View style={[styles.categoryPill, { backgroundColor: Colors.blush }]}>
+            <Text style={[styles.categoryPillText, { color: Colors.burgundy }]}>{post.category}</Text>
           </View>
         </View>
 
@@ -109,14 +110,14 @@ export default function ThreadScreen() {
             <FontAwesome
               name="arrow-up"
               size={13}
-              color={post.upvoted ? '#fff' : '#9B59B6'}
+              color={post.upvoted ? Colors.cream : Colors.wine}
             />
             <Text style={[styles.upvoteCount, post.upvoted && styles.upvoteCountActive]}>
               {post.upvoteCount}
             </Text>
           </TouchableOpacity>
           <View style={styles.replyCountChip}>
-            <FontAwesome name="comment-o" size={12} color="#9B59B6" />
+            <FontAwesome name="comment-o" size={12} color={Colors.wine} />
             <Text style={styles.replyCountText}>
               {post.comments.length} {post.comments.length === 1 ? 'reply' : 'replies'}
             </Text>
@@ -151,7 +152,7 @@ export default function ThreadScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.emptyComments}>
-              <FontAwesome name="comment-o" size={28} color="#D7BDE2" />
+              <FontAwesome name="comment-o" size={28} color={Colors.blush} />
               <Text style={styles.emptyText}>No replies yet. Be the first to respond.</Text>
             </View>
           }
@@ -166,7 +167,7 @@ export default function ThreadScreen() {
             value={replyText}
             onChangeText={setReplyText}
             placeholder="Add a reply…"
-            placeholderTextColor="#C5BAD0"
+            placeholderTextColor={Colors.borderCard}
             multiline
             returnKeyType="default"
           />
@@ -186,15 +187,19 @@ export default function ThreadScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const PURPLE = '#9B59B6';
-
 const styles = StyleSheet.create({
-  safe:  { flex: 1, backgroundColor: '#F8F4F9' },
+  safe:  { flex: 1, backgroundColor: Colors.cream },
   flex:  { flex: 1 },
   scroll: { flex: 1 },
   container: { padding: 20, paddingBottom: 8 },
 
-  notFound: { textAlign: 'center', marginTop: 60, fontSize: 16, color: '#aaa' },
+  notFound: {
+    textAlign: 'center',
+    marginTop: 60,
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: Colors.textMuted,
+  },
 
   backBtn: {
     flexDirection: 'row',
@@ -203,19 +208,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     alignSelf: 'flex-start',
   },
-  backText: { fontSize: 15, color: PURPLE, fontWeight: '500' },
+  backText: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: Colors.wine,
+  },
 
   // ── Original post card ──
   postCard: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
+    backgroundColor: Colors.ivory,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
     padding: 18,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
-    elevation: 3,
   },
   postMeta: {
     flexDirection: 'row',
@@ -227,7 +233,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F0EBF5',
+    backgroundColor: Colors.blush,
     borderRadius: 20,
     paddingRight: 10,
     paddingLeft: 4,
@@ -238,24 +244,33 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
   },
-  authorChipText: { fontSize: 12, fontWeight: '600', color: '#6C3483', marginLeft: 2 },
+  authorChipText: {
+    fontFamily: Fonts.semibold,
+    fontSize: 12,
+    color: Colors.burgundy,
+    marginLeft: 2,
+  },
   categoryPill: {
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  categoryPillText: { fontSize: 11, fontWeight: '700' },
+  categoryPillText: {
+    fontFamily: Fonts.bold,
+    fontSize: 11,
+  },
 
   postTitle: {
+    fontFamily: Fonts.semibold,
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A2E',
+    color: Colors.textDark,
     lineHeight: 25,
     marginBottom: 10,
   },
   postBody: {
+    fontFamily: Fonts.regular,
     fontSize: 14,
-    color: '#444',
+    color: Colors.textMuted,
     lineHeight: 22,
     marginBottom: 16,
   },
@@ -265,33 +280,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0EBF5',
+    borderTopColor: Colors.borderCard,
     paddingTop: 14,
   },
   upvoteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F5EEF8',
+    backgroundColor: Colors.blush,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  upvoteCount:       { fontSize: 13, fontWeight: '700', color: PURPLE },
-  upvoteCountActive: { color: '#6C3483' },
+  upvoteCount: {
+    fontFamily: Fonts.bold,
+    fontSize: 13,
+    color: Colors.wine,
+  },
+  upvoteCountActive: { color: Colors.burgundy },
 
   replyCountChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  replyCountText: { fontSize: 13, color: PURPLE, fontWeight: '500' },
+  replyCountText: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.wine,
+  },
 
   // ── Thread label ──
   threadLabel: {
+    fontFamily: Fonts.semibold,
     fontSize: 13,
-    fontWeight: '700',
-    color: '#444',
+    color: Colors.textDark,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     marginBottom: 14,
@@ -307,12 +330,16 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#E8D5F5',
+    backgroundColor: Colors.blush,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  commentAvatarText: { fontSize: 14, fontWeight: '700', color: PURPLE },
+  commentAvatarText: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: Colors.wine,
+  },
   commentBody: { flex: 1 },
   commentMeta: {
     flexDirection: 'row',
@@ -320,10 +347,23 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 5,
   },
-  commentAuthor: { fontSize: 13, fontWeight: '700', color: '#1A1A2E' },
-  commentTime:   { fontSize: 11, color: '#bbb' },
-  commentText:   { fontSize: 14, color: '#444', lineHeight: 21 },
-  commentDivider: { height: 1, backgroundColor: '#F0EBF5', marginLeft: 46 },
+  commentAuthor: {
+    fontFamily: Fonts.semibold,
+    fontSize: 13,
+    color: Colors.textDark,
+  },
+  commentTime: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  commentText: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: Colors.textMuted,
+    lineHeight: 21,
+  },
+  commentDivider: { height: 1, backgroundColor: Colors.borderCard, marginLeft: 46 },
 
   // ── Empty state ──
   emptyComments: {
@@ -331,7 +371,12 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 32,
   },
-  emptyText: { fontSize: 14, color: '#aaa', textAlign: 'center' },
+  emptyText: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: Colors.textMuted,
+    textAlign: 'center',
+  },
 
   // ── Reply bar ──
   replyBar: {
@@ -340,34 +385,35 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.cream,
     borderTopWidth: 1,
-    borderTopColor: '#F0EBF5',
+    borderTopColor: Colors.borderCard,
   },
   replyInput: {
     flex: 1,
-    backgroundColor: '#F8F4F9',
-    borderWidth: 1.5,
-    borderColor: '#E8E0EE',
-    borderRadius: 14,
+    backgroundColor: Colors.ivory,
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
+    fontFamily: Fonts.regular,
     fontSize: 15,
-    color: '#1A1A2E',
+    color: Colors.textDark,
     maxHeight: 100,
   },
   sendBtn: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: PURPLE,
+    backgroundColor: Colors.wine,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: PURPLE,
+    shadowColor: Colors.wine,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4,
   },
-  sendBtnDisabled: { backgroundColor: '#D5C9E0', shadowOpacity: 0 },
+  sendBtnDisabled: { backgroundColor: Colors.blush, shadowOpacity: 0 },
 });

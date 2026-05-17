@@ -8,6 +8,13 @@ import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
+import {
+  Fraunces_300Light,
+  Fraunces_400Regular,
+  Fraunces_500Medium,
+  Fraunces_600SemiBold,
+  Fraunces_700Bold,
+} from '@expo-google-fonts/fraunces';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { HealthProvider } from '@/context/HealthContext';
@@ -40,6 +47,11 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
+    Fraunces_300Light,
+    Fraunces_400Regular,
+    Fraunces_500Medium,
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
   });
 
   useEffect(() => {
@@ -102,8 +114,8 @@ function InitialLayout() {
 
   if (!isLoaded) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F4F9' }}>
-        <ActivityIndicator color="#9B59B6" size="large" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBF7F0' }}>
+        <ActivityIndicator color="#8C3A4D" size="large" />
       </View>
     );
   }
