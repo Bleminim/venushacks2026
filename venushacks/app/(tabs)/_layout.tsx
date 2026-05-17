@@ -38,6 +38,8 @@ function TabIcon({
 const tabStyles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 4 },
   dot:  { width: 4, height: 4, borderRadius: 2, backgroundColor: '#9B59B6' },
+  // Clips blur + overlay to the pill shape
+  pillClip: { borderRadius: 40, overflow: 'hidden' },
   // Semi-transparent white tint that gives the "frosted glass" colour
   glassOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -54,27 +56,27 @@ export default function TabLayout() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarBackground: () => (
-          <View style={StyleSheet.absoluteFill}>
-            {/* Blur layer */}
+          <View style={[StyleSheet.absoluteFill, tabStyles.pillClip]}>
             <BlurView tint="light" intensity={55} style={StyleSheet.absoluteFill} />
-            {/* Frosted white tint overlay — this is what makes it look like glass */}
             <View style={tabStyles.glassOverlay} />
           </View>
         ),
         tabBarStyle: {
           position: 'absolute',
+          bottom: 20,
+          marginHorizontal: 30,
+          borderRadius: 40,
+          height: 65,
           backgroundColor: 'transparent',
           borderTopWidth: 1,
           borderTopColor: 'rgba(255, 255, 255, 0.75)',
-          elevation: 0,
-          // Upward shadow so the bar lifts off the content
-          shadowColor: '#9B59B6',
-          shadowOffset: { width: 0, height: -6 },
+          elevation: 5,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.10,
-          shadowRadius: 16,
-          height: 64,
+          shadowRadius: 15,
           paddingTop: 8,
-          paddingBottom: 10,
+          paddingBottom: 0,
         },
       }}
     >

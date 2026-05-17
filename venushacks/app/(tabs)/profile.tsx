@@ -156,7 +156,7 @@ const PURPLE = '#9B59B6';
 
 const styles = StyleSheet.create({
   scroll:    { flex: 1, backgroundColor: '#F8F4F9' },
-  container: { padding: 20, paddingBottom: 20 },
+  container: { padding: 20, paddingBottom: 130 },
 
   // Header — matches Home & Log pattern exactly
   header: { marginBottom: 20, marginTop: 4 },

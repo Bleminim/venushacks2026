@@ -276,7 +276,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: '#F8F4F9' },
-  container: { padding: 20, paddingBottom: 20 },
+  container: { padding: 20, paddingBottom: 130 },
 
   header: { marginBottom: 20, marginTop: 4 },
   greeting: { fontSize: 28, fontWeight: '600', color: '#1A1A2E', letterSpacing: -0.5 },
