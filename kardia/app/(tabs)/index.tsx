@@ -144,6 +144,7 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                         <Text style={styles.a1cText}>
                           {latest.a1c !== null ? `${latest.a1c}%` : '5.7%'} A1C
+                          <Text style={styles.cardDate}>   ·   {latest.date}</Text>
                         </Text>
                       </View>
 
@@ -307,6 +308,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderCard,
     padding: 15,
     marginBottom: 15,
+  },
+  cardDate: {
+    color: Colors.textMuted,
   },
   diagnosticRow: {
     flexDirection: 'row',
