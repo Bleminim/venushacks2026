@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "venushacks",
-    "slug": "venushacks",
+    "name": "Kardia",
+    "slug": "kardia",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "venushacks",
+    "scheme": "kardia",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.venushacks"
+      "bundleIdentifier": "com.anonymous.kardia"
     },
     "android": {
       "adaptiveIcon": {
