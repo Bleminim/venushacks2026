@@ -125,7 +125,7 @@ function MiniChart({ metric, cardWidth }: { metric: 'bp' | 'glucose'; cardWidth:
     );
   }
 
-  const pad     = metric === 'bp' ? 100 : 100;
+  const pad     = 100;
   const dataMax = Math.max(...chartData.map(d => d.value)) + pad;
   const dataMin = metric === 'bp' ? 50 : Math.max(0, Math.min(...chartData.map(d => d.value)) - pad);
   const spacing = Math.max(2, chartW / Math.max(chartData.length - 1, 1));

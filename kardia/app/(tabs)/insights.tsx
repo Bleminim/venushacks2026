@@ -130,10 +130,10 @@ export default function InsightsScreen() {
   const fillColor = metric === 'bp' ? '#D4A99A' : '#E8C4B8';
 
   const dataMax = chartData.length
-    ? Math.max(...chartData.map((d) => d.value)) + (metric === 'bp' ? 14 : 18)
+    ? Math.max(...chartData.map((d) => d.value)) + 100
     : 160;
   const dataMin = chartData.length
-    ? Math.min(...chartData.map((d) => d.value)) - 8
+    ? metric === 'bp' ? 50 : Math.max(0, Math.min(...chartData.map((d) => d.value)) - 8)
     : 80;
 
   return (
@@ -243,7 +243,7 @@ export default function InsightsScreen() {
                 curved
                 data={chartData}
                 width={chartW - 40}
-                height={200}
+                height={130}
                 spacing={Math.max(2, (chartW - 60) / Math.max(chartData.length - 1, 1))}
                 color={lineColor}
                 thickness={2.5}
@@ -266,29 +266,18 @@ export default function InsightsScreen() {
                   pointerStripWidth: 1.5,
                   pointerColor: lineColor,
                   radius: 5,
-                  pointerLabelWidth: 140,
-                  pointerLabelHeight: 50,
                   activatePointersOnLongPress: false,
-                  autoAdjustPointerLabelPosition: true,
                   pointerLabelComponent: (items: any[]) => {
                     const item = items?.[0];
                     if (!item) return null;
-
                     const val = metric === 'bp'
                       ? `${item.value}/${item.diastolic ?? '—'} mmHg`
                       : `${item.value} mg/dL`;
-                    const date: string = item.date ?? '';
-
                     setTimeout(() => {
                       setHeaderVal(val);
-                      setHeaderDate(date);
+                      setHeaderDate(item.date ?? '');
                     }, 0);
-
-                    return (
-                      <View style={styles.pointerBubble}>
-                        <Text style={styles.pointerBubbleText}>{val}</Text>
-                      </View>
-                    );
+                    return null;
                   },
                 }}
               />
