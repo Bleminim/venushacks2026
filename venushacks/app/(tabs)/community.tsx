@@ -195,7 +195,7 @@ export default function CommunityScreen() {
 
 const styles = StyleSheet.create({
   scroll:    { flex: 1, backgroundColor: '#F8F4F9' },
-  container: { padding: 20 },
+  container: { padding: 20, paddingBottom: 20 },
 
   header: { marginBottom: 8, marginTop: 4 },
   headerEyebrow: { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 },

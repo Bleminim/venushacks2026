@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
+import { BlurView } from 'expo-blur';
 // HugeiconsIcon from the React Native renderer (uses react-native-svg, not DOM svg)
 import { HugeiconsIcon } from '@hugeicons/react-native';
 // Icon data from the free tier
@@ -37,6 +38,11 @@ function TabIcon({
 const tabStyles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 4 },
   dot:  { width: 4, height: 4, borderRadius: 2, backgroundColor: '#9B59B6' },
+  // Semi-transparent white tint that gives the "frosted glass" colour
+  glassOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(248, 244, 249, 0.55)',
+  },
 });
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
@@ -47,14 +53,25 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarBackground: () => (
+          <View style={StyleSheet.absoluteFill}>
+            {/* Blur layer */}
+            <BlurView tint="light" intensity={55} style={StyleSheet.absoluteFill} />
+            {/* Frosted white tint overlay — this is what makes it look like glass */}
+            <View style={tabStyles.glassOverlay} />
+          </View>
+        ),
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopWidth: 0,
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(255, 255, 255, 0.75)',
           elevation: 0,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
+          // Upward shadow so the bar lifts off the content
+          shadowColor: '#9B59B6',
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.10,
+          shadowRadius: 16,
           height: 64,
           paddingTop: 8,
           paddingBottom: 10,

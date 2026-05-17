@@ -299,7 +299,7 @@ const PURPLE = '#9B59B6';
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { flex: 1, backgroundColor: '#F8F4F9' },
-  container: { padding: 20 },
+  container: { padding: 20, paddingBottom: 20 },
 
   header: { marginBottom: 16, marginTop: 4 },
   headerEyebrow: { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 },
