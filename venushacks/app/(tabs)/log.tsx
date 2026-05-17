@@ -12,29 +12,7 @@ import {
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useHealth, LogEntry, MealTiming } from '@/context/HealthContext';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function classifyBP(sys: number, dia: number) {
-  if (sys >= 140 || dia >= 90)
-    return { label: 'Stage 2 High', color: '#C0392B', bg: '#FDEDEC', bar: '#E74C3C' };
-  if (sys >= 130 || dia >= 80)
-    return { label: 'Stage 1 High', color: '#D35400', bg: '#FEF5EC', bar: '#E67E22' };
-  if (sys >= 120)
-    return { label: 'Elevated',     color: '#B7770D', bg: '#FFFDE7', bar: '#F1C40F' };
-  return   { label: 'Normal',       color: '#1E8449', bg: '#EAFAF1', bar: '#27AE60' };
-}
-
-function classifyGlucose(value: number, timing: MealTiming) {
-  if (timing === 'pre') {
-    if (value >= 126) return { label: 'High',    color: '#C0392B' };
-    if (value >= 100) return { label: 'Elevated', color: '#D35400' };
-    return               { label: 'Normal',    color: '#1E8449' };
-  }
-  if (value >= 200) return { label: 'High',    color: '#C0392B' };
-  if (value >= 140) return { label: 'Elevated', color: '#D35400' };
-  return               { label: 'Normal',    color: '#1E8449' };
-}
+import { getBPStatus, getGlucoseStatus } from '@/utils/healthColors';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -70,12 +48,12 @@ interface LogCardProps {
 }
 
 function LogCard({ entry, onEdit }: LogCardProps) {
-  const bp  = classifyBP(entry.systolic, entry.diastolic);
-  const glc = classifyGlucose(entry.glucose, entry.mealTiming);
+  const bp  = getBPStatus(entry.systolic, entry.diastolic);
+  const glc = getGlucoseStatus(entry.glucose, entry.mealTiming);
 
   return (
-    <View style={[styles.logCard, { backgroundColor: bp.bg }]}>
-      <View style={[styles.logBar, { backgroundColor: bp.bar }]} />
+    <View style={[styles.logCard, { backgroundColor: bp.bgColor }]}>
+      <View style={[styles.logBar, { backgroundColor: bp.borderColor }]} />
 
       <View style={styles.logBody}>
         <View style={styles.logHeaderRow}>

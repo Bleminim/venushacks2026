@@ -9,42 +9,21 @@ import {
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useHealth, LogEntry } from '@/context/HealthContext';
+import { getBPStatus } from '@/utils/healthColors';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function classifyBP(sys: number, dia: number) {
+function bpPlainText(sys: number, dia: number): string {
   if (sys >= 140 || dia >= 90) {
-    return {
-      label: 'High Blood Pressure',
-      sublabel: 'Stage 2 Hypertension',
-      color: '#C0392B',
-      bgColor: '#FDEDEC',
-      borderColor: '#E74C3C',
-      icon: 'exclamation-triangle' as const,
-      plainText:
-        `Your blood pressure of ${sys}/${dia} is above the safe range. Readings at or above 140/90 are classified as Stage 2 hypertension. During and after pregnancy, high blood pressure can affect both your heart and your baby's health. This reading warrants a prompt conversation with your care team.`,
-    };
+    return `Your blood pressure of ${sys}/${dia} is above the safe range. Readings at or above 140/90 are classified as Stage 2 hypertension. During and after pregnancy, high blood pressure can affect both your heart and your baby's health. This reading warrants a prompt conversation with your care team.`;
   }
   if (sys >= 130 || dia >= 80) {
-    return {
-      label: 'Elevated Blood Pressure',
-      sublabel: 'Stage 1 Hypertension',
-      color: '#D35400',
-      bgColor: '#FEF9E7',
-      borderColor: '#F39C12',
-      icon: 'exclamation-circle' as const,
-      plainText: `Your blood pressure of ${sys}/${dia} is slightly elevated. Monitor closely and discuss with your provider.`,
-    };
+    return `Your blood pressure of ${sys}/${dia} is slightly elevated (Stage 1 hypertension). Monitor closely and discuss with your provider.`;
   }
-  return {
-    label: 'Normal Blood Pressure',
-    sublabel: 'Looking good',
-    color: '#1E8449',
-    bgColor: '#EAFAF1',
-    borderColor: '#27AE60',
-    icon: 'check-circle' as const,
-    plainText: `Your blood pressure of ${sys}/${dia} is within a healthy range. Keep up the great work.`,
-  };
+  if (sys >= 120) {
+    return `Your blood pressure of ${sys}/${dia} is elevated but not yet in the hypertension range. Keep an eye on it and log readings regularly.`;
+  }
+  return `Your blood pressure of ${sys}/${dia} is within a healthy range. Keep up the great work.`;
 }
 
 function buildAdvocacyScript(entry: LogEntry): string {
@@ -106,7 +85,8 @@ export default function HomeScreen() {
         <>
           {/* BP Reading Card */}
           {(() => {
-            const status = classifyBP(latest.systolic, latest.diastolic);
+            const status   = getBPStatus(latest.systolic, latest.diastolic);
+            const bodyText = bpPlainText(latest.systolic, latest.diastolic);
             return (
               <>
                 <View style={styles.readingCard}>
@@ -160,7 +140,7 @@ export default function HomeScreen() {
                       <Text style={[styles.alertSublabel, { color: status.color }]}>{status.sublabel}</Text>
                     </View>
                   </View>
-                  <Text style={styles.alertBody}>{status.plainText}</Text>
+                  <Text style={styles.alertBody}>{bodyText}</Text>
                 </View>
 
                 {/* What this means */}
