@@ -208,35 +208,6 @@ export default function InsightsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── Diagnostic overview card ── */}
-        {latestPoint && (
-          <View style={styles.diagnosticCard}>
-            <View style={styles.diagnosticRow}>
-              <View style={styles.diagnosticLeft}>
-                <Text style={styles.diagLabel}>
-                  {metric === 'bp' ? 'Blood Pressure' : 'Glucose'}
-                </Text>
-                <Text style={styles.diagValue}>
-                  {metric === 'bp'
-                    ? `${latestPoint.value}/${latestPoint.diastolic} `
-                    : `${latestPoint.value} `}
-                  <Text style={styles.diagUnit}>
-                    {metric === 'bp' ? 'mmHg' : 'mg/dL'}
-                  </Text>
-                </Text>
-                <Text style={styles.diagA1c}>5.7% A1C</Text>
-              </View>
-              <View style={styles.diagGlucoseBox}>
-                <FontAwesome name="tint" size={22} color={Colors.burgundy} />
-                <Text style={styles.diagGlucoseVal}>
-                  {metric === 'bp' ? (logs[0]?.glucose ?? '—') : latestPoint.value}
-                </Text>
-                <Text style={styles.diagGlucoseUnit}>mg/dL</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
         {/* ── Chart card ── */}
         <View style={styles.chartCard}>
 
