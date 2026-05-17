@@ -112,7 +112,6 @@ export default function InsightsScreen() {
       }))
       .filter((item) => !isNaN(item.value));
 
-    console.log('Final Chart Data Length:', processedData.length);
     return processedData;
   }, [logs, metric, range]);
 
@@ -219,6 +218,8 @@ export default function InsightsScreen() {
               data={chartData}
               width={chartW - 40}
               height={200}
+              // Pack points tightly to fill available width (Robinhood sweep)
+              spacing={Math.max(2, Math.floor((chartW - 60) / Math.max(chartData.length - 1, 1)))}
               // Line style
               color={lineColor}
               thickness={2.5}
@@ -237,7 +238,8 @@ export default function InsightsScreen() {
               yAxisThickness={0}
               xAxisThickness={0}
               xAxisLabelTextStyle={styles.hiddenLabel}
-              // No dots except on pointer
+              // No dots on line — continuous sweep look
+              hideDataPoints
               dataPointsRadius={0}
               // Interactive scrubbing
               pointerConfig={{

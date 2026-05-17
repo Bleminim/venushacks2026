@@ -51,24 +51,21 @@ function formatDate(d: Date): string {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · ${h}:${m} ${ampm}`;
 }
 
+// Three readings per day: morning (pre-meal), afternoon (post-meal), evening (post-meal)
+const SLOT_HOURS: [number, number, number] = [8, 14, 20];
+const SLOT_TIMING: ['pre', 'post', 'post'] = ['pre', 'post', 'post'];
+
 function generateMockData(): LogEntry[] {
   const today = new Date();
   const logs: LogEntry[] = [];
 
   for (let i = 0; i < 365; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    d.setHours(6 + Math.floor(Math.random() * 3)); // 6–8 AM
-    d.setMinutes(Math.floor(Math.random() * 60));
-    d.setSeconds(0, 0);
-
     let sysBP: number;
     let diaBP: number;
     let glc: number;
 
     if (i <= 30) {
       // Phase 4 — Postpartum recovery (last 30 days)
-      // t=0 → today (120/75, 90);  t=1 → 30 days ago (peak from phase 3)
       const t = i / 30;
       sysBP = lerp(120, 135, t);
       diaBP = lerp(75,  88,  t);
@@ -76,54 +73,55 @@ function generateMockData(): LogEntry[] {
 
     } else if (i <= 90) {
       // Phase 3 — 3rd trimester risk spike (30–90 days ago)
-      // Values rise from mid-trimester levels to gestational hypertension peak.
-      // t=0 → 30 days ago (peak: 135/88, 100);  t=1 → 90 days ago (onset: 120/80, 92)
       const t = (i - 30) / 60;
       sysBP = lerp(135, 120, t);
       diaBP = lerp(88,  80,  t);
       glc   = lerp(100, 92,  t);
 
     } else if (i <= 273) {
-      // Phase 2 — 1st/2nd trimester (90–273 days ago, ~3–9 months)
-      // Physiological BP dip from expanded blood volume; improved insulin sensitivity.
-      // t=0 → 90 days ago (transition from baseline);  t=1 → 273 days ago (deepest dip)
+      // Phase 2 — 1st/2nd trimester (90–273 days ago)
       const t = (i - 90) / 183;
       sysBP = lerp(110, 105, t);
       diaBP = lerp(70,  65,  t);
       glc   = lerp(85,  80,  t);
 
     } else {
-      // Phase 1 — Pre-pregnancy baseline (273–365 days ago, ~9–12 months)
-      // Stable normal adult values; minimal drift.
+      // Phase 1 — Pre-pregnancy baseline (273–365 days ago)
       const t = (i - 273) / 92;
       sysBP = lerp(110, 112, t);
       diaBP = lerp(70,  72,  t);
       glc   = lerp(85,  87,  t);
     }
 
-    // Phase-specific variance matches clinical spec:
-    //   Phase 3 (3rd trimester spike): BP ±6, glucose ±8
-    //   All other phases:              BP ±5, glucose ±5
+    // Phase-specific variance: Phase 3 spike gets wider jitter
     const bpVar  = (i > 30 && i <= 90) ? 6 : 5;
     const glcVar = (i > 30 && i <= 90) ? 8 : 5;
 
-    // Quarterly A1C entries (every ~91 days)
-    const a1c = i % 91 === 0
-      ? parseFloat((5.4 + Math.random() * 0.6).toFixed(1))
-      : null;
+    for (let s = 0; s < SLOT_HOURS.length; s++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      d.setHours(SLOT_HOURS[s]);
+      d.setMinutes(Math.floor(Math.random() * 30)); // small minute offset within slot
+      d.setSeconds(0, 0);
 
-    logs.push({
-      id:         `gen-${i}`,
-      date:       formatDate(d),
-      systolic:   jitter(sysBP, bpVar),
-      diastolic:  jitter(diaBP, bpVar),
-      glucose:    jitter(glc,   glcVar),
-      mealTiming: 'pre',
-      a1c,
-    });
+      // Quarterly A1C — only on the morning slot of every 91st day
+      const a1c = (i % 91 === 0 && s === 0)
+        ? parseFloat((5.4 + Math.random() * 0.6).toFixed(1))
+        : null;
+
+      logs.push({
+        id:         `gen-${i}-${s}`,
+        date:       formatDate(d),
+        systolic:   jitter(sysBP, bpVar),
+        diastolic:  jitter(diaBP, bpVar),
+        glucose:    jitter(glc,   glcVar),
+        mealTiming: SLOT_TIMING[s],
+        a1c,
+      });
+    }
   }
 
-  // Array is already newest-first (i=0 = today)
+  // Array is newest-first: day 0 slot 0 → day 0 slot 1 → day 0 slot 2 → day 1 slot 0 …
   return logs;
 }
 
