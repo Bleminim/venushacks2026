@@ -10,10 +10,11 @@ import {
   View,
   Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { BlurView } from 'expo-blur';
 
 import { useCommunity, type Comment } from '@/context/CommunityContext';
 import { Colors, Fonts } from '@/constants/theme';
@@ -54,6 +55,7 @@ export default function ThreadScreen() {
   const { user } = useUser();
   const { posts, toggleUpvote, addComment } = useCommunity();
   const listRef = useRef<FlatList>(null);
+  const { bottom } = useSafeAreaInsets();
 
   const [replyText, setReplyText] = useState('');
 
@@ -160,25 +162,31 @@ export default function ThreadScreen() {
           showsVerticalScrollIndicator={false}
         />
 
-        {/* ── Reply input ── */}
-        <View style={styles.replyBar}>
-          <TextInput
-            style={styles.replyInput}
-            value={replyText}
-            onChangeText={setReplyText}
-            placeholder="Add a reply…"
-            placeholderTextColor={Colors.borderCard}
-            multiline
-            returnKeyType="default"
-          />
-          <TouchableOpacity
-            style={[styles.sendBtn, !replyText.trim() && styles.sendBtnDisabled]}
-            onPress={handleSend}
-            disabled={!replyText.trim()}
-            activeOpacity={0.8}
-          >
-            <FontAwesome name="send" size={15} color="#fff" />
-          </TouchableOpacity>
+        {/* ── Reply input (floating liquid glass) ── */}
+        <View style={[styles.replyBarFloat, { marginBottom: bottom + 12 }]}>
+          <View style={styles.replyBarClip}>
+            <BlurView tint="light" intensity={55} style={StyleSheet.absoluteFill} />
+            <View style={styles.replyBarOverlay} />
+            <View style={styles.replyBarInner}>
+              <TextInput
+                style={styles.replyInput}
+                value={replyText}
+                onChangeText={setReplyText}
+                placeholder="Add a reply…"
+                placeholderTextColor={Colors.borderCard}
+                multiline
+                returnKeyType="default"
+              />
+              <TouchableOpacity
+                style={[styles.sendBtn, !replyText.trim() && styles.sendBtnDisabled]}
+                onPress={handleSend}
+                disabled={!replyText.trim()}
+                activeOpacity={0.8}
+              >
+                <FontAwesome name="send" size={15} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -378,23 +386,39 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── Reply bar ──
-  replyBar: {
+  // ── Reply bar (floating liquid glass) ──
+  replyBarFloat: {
+    marginHorizontal: 16,
+    borderRadius: 28,
+    shadowColor: '#3D1119',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 15,
+    elevation: 5,
+  },
+  replyBarClip: {
+    borderRadius: 28,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(220, 214, 206, 0.5)',
+  },
+  replyBarOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(251, 247, 240, 0.65)',
+  },
+  replyBarInner: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.cream,
-    borderTopWidth: 1,
-    borderTopColor: Colors.borderCard,
   },
   replyInput: {
     flex: 1,
-    backgroundColor: Colors.ivory,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.borderCard,
-    borderRadius: 10,
+    borderColor: 'rgba(220, 214, 206, 0.6)',
+    borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontFamily: Fonts.regular,
