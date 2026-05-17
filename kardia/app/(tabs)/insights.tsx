@@ -14,6 +14,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useHealth } from '@/context/HealthContext';
 import { Colors, Fonts } from '@/constants/theme';
+import { FadeCard } from '@/components/FadeCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -158,7 +159,8 @@ export default function InsightsScreen() {
         </View>
 
         {/* ── Metric toggle ── */}
-        <View style={styles.metricToggle}>
+        <FadeCard delay={0} style={styles.metricToggle}>
+
           {/* Blood Pressure tab */}
           <TouchableOpacity
             style={[
@@ -202,10 +204,10 @@ export default function InsightsScreen() {
               Glucose
             </Text>
           </TouchableOpacity>
-        </View>
+        </FadeCard>
 
         {/* ── Chart card ── */}
-        <View style={styles.chartCard}>
+        <FadeCard delay={100} style={styles.chartCard}>
 
           {/* Dynamic header */}
           <View style={styles.dynamicHeader}>
@@ -293,10 +295,10 @@ export default function InsightsScreen() {
               </Text>
             </View>
           )}
-        </View>
+        </FadeCard>
 
         {/* ── 20-Year Forecast card ── */}
-        <View style={styles.forecastCard}>
+        <FadeCard delay={200} style={styles.forecastCard}>
           <View style={styles.forecastTitleRow}>
             <FontAwesome name="line-chart" size={14} color={Colors.burgundy} />
             <Text style={styles.forecastTitle}>20-Year Heart Health Forecast</Text>
@@ -321,17 +323,17 @@ export default function InsightsScreen() {
               <Text style={styles.forecastStatLabel}>If managed{'\n'}proactively</Text>
             </View>
           </View>
-        </View>
+        </FadeCard>
 
         {/* ── Affirmation ── */}
-        <View style={styles.affirmCard}>
+        <FadeCard delay={300} style={styles.affirmCard}>
           <FontAwesome name="heart" size={16} color={Colors.wine} />
           <Text style={styles.affirmTitle}>You're already ahead.</Text>
           <Text style={styles.affirmBody}>
             Tracking your health today puts you in the top tier of proactive maternal care.
             Every data point you log paints a clearer picture for your doctor — and a healthier future for you.
           </Text>
-        </View>
+        </FadeCard>
 
         <View style={{ height: 24 }} />
       </ScrollView>

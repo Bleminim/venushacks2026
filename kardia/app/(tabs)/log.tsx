@@ -16,6 +16,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useHealth, LogEntry, MealTiming } from '@/context/HealthContext';
 import { getBPStatus, getGlucoseStatus } from '@/utils/healthColors';
 import { Colors, Fonts } from '@/constants/theme';
+import { FadeCard } from '@/components/FadeCard';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -173,13 +174,13 @@ export default function LogScreen() {
 
   const ListHeader = (
     <View>
-      <View style={styles.header}>
+      <FadeCard delay={0} style={styles.header}>
         <Text style={styles.headerEyebrow}>Daily Check-In</Text>
         <Text style={styles.headerTitle}>Log a Reading</Text>
         <Text style={styles.headerSub}>
           Consistent tracking helps your care team spot patterns early.
         </Text>
-      </View>
+      </FadeCard>
 
       {editingEntry && (
         <View style={styles.editBanner}>
@@ -193,7 +194,7 @@ export default function LogScreen() {
         </View>
       )}
 
-      <View style={styles.formCard}>
+      <FadeCard delay={100} style={styles.formCard}>
         <Text style={styles.sectionLabel}>Blood Pressure</Text>
         <View style={styles.row}>
           <View style={styles.halfField}>
@@ -261,12 +262,12 @@ export default function LogScreen() {
             {editingId ? 'Update Log' : 'Save Log'}
           </Text>
         </TouchableOpacity>
-      </View>
+      </FadeCard>
 
-      <View style={styles.historyHeader}>
+      <FadeCard delay={200} style={styles.historyHeader}>
         <Text style={styles.historyTitle}>Recent Readings</Text>
         <Text style={styles.historyCount}>{logs.length} entries</Text>
-      </View>
+      </FadeCard>
     </View>
   );
 
@@ -290,8 +291,10 @@ export default function LogScreen() {
           data={logs}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={ListHeader}
-          renderItem={({ item }) => (
-            <LogCard entry={item} onEdit={populateForm} />
+          renderItem={({ item, index }) => (
+            <FadeCard delay={300 + index * 50}>
+              <LogCard entry={item} onEdit={populateForm} />
+            </FadeCard>
           )}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           ListFooterComponent={<View style={{ height: 32 }} />}

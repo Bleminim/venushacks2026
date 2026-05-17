@@ -17,6 +17,7 @@ import { useUser } from '@clerk/clerk-expo';
 import { useHealth, LogEntry } from '@/context/HealthContext';
 import { getBPStatus } from '@/utils/healthColors';
 import { Colors, Fonts } from '@/constants/theme';
+import { FadeCard } from '@/components/FadeCard';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -237,7 +238,7 @@ export default function HomeScreen() {
               const bodyText = bpPlainText(latest.systolic, latest.diastolic);
               return (
                 <>
-                  <View style={styles.diagnosticCard}>
+                  <FadeCard delay={0} style={styles.diagnosticCard}>
                     <View style={styles.diagnosticRow}>
                       <View style={styles.diagnosticLeft}>
                         <Text style={styles.bpLabel}>Blood Pressure</Text>
@@ -269,10 +270,10 @@ export default function HomeScreen() {
                         <Text style={styles.glucoseLabel}>mg/dL</Text>
                       </View>
                     </View>
-                  </View>
+                  </FadeCard>
 
                   {/* Mini chart cards row */}
-                  <View style={styles.miniChartRow}>
+                  <FadeCard delay={100} style={styles.miniChartRow}>
                     <View style={[styles.miniChartCard, { width: miniCardWidth }]}>
                       <Text style={styles.miniChartLabel}>Blood Pressure</Text>
                       <MiniChart metric="bp" cardWidth={miniCardWidth} />
@@ -281,10 +282,10 @@ export default function HomeScreen() {
                       <Text style={styles.miniChartLabel}>Glucose</Text>
                       <MiniChart metric="glucose" cardWidth={miniCardWidth} />
                     </View>
-                  </View>
+                  </FadeCard>
 
                   {/* Status card */}
-                  <View style={[styles.statusCard, { backgroundColor: status.bgColor, borderColor: status.borderColor }]}>
+                  <FadeCard delay={200} style={[styles.statusCard, { backgroundColor: status.bgColor, borderColor: status.borderColor }]}>
                     <View style={styles.statusHeader}>
                       <FontAwesome name={status.icon} size={22} color={status.color} />
                       <View style={styles.statusLabelWrap}>
@@ -293,10 +294,10 @@ export default function HomeScreen() {
                       </View>
                     </View>
                     <Text style={styles.statusBody}>{bodyText}</Text>
-                  </View>
+                  </FadeCard>
 
                   {/* What do these numbers mean? */}
-                  <View style={styles.infoCard}>
+                  <FadeCard delay={300} style={styles.infoCard}>
                     <Text style={styles.infoTitle}>What do these numbers mean?</Text>
                     {[
                       { bold: `${latest.systolic} (Systolic)`, text: ' \u2014 the pressure when your heart beats. ACOG flags \u2265 140 as gestational hypertension.' },
@@ -311,10 +312,10 @@ export default function HomeScreen() {
                         </Text>
                       </View>
                     ))}
-                  </View>
+                  </FadeCard>
 
                   {/* Advocacy Script */}
-                  <View style={styles.scriptCard}>
+                  <FadeCard delay={400} style={styles.scriptCard}>
                     <TouchableOpacity
                       onPress={() => setScriptExpanded(!scriptExpanded)}
                       activeOpacity={0.85}
@@ -344,7 +345,7 @@ export default function HomeScreen() {
                         {buildAdvocacyScript(latest)}
                       </Text>
                     )}
-                  </View>
+                  </FadeCard>
                 </>
               );
             })()}

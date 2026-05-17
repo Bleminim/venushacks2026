@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 
 import { Colors, Fonts } from '@/constants/theme';
+import { FadeCard } from '@/components/FadeCard';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -94,7 +95,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* ── Profile card ── */}
-        <View style={[styles.card, styles.profileCard]}>
+        <FadeCard delay={0} style={[styles.card, styles.profileCard]}>
           {user?.imageUrl ? (
             <Image source={{ uri: user.imageUrl }} style={styles.avatarImage} />
           ) : initials ? (
@@ -113,11 +114,11 @@ export default function ProfileScreen() {
           <TouchableOpacity onPress={() => router.push('/edit-profile')}>
             <Text style={styles.editLink}>Edit</Text>
           </TouchableOpacity>
-        </View>
+        </FadeCard>
 
         {/* ── Settings ── */}
         <Text style={styles.sectionLabel}>Settings</Text>
-        <View style={styles.card}>
+        <FadeCard delay={100} style={styles.card}>
           <SettingsRow
             icon="lock"
             label="Privacy Settings"
@@ -139,21 +140,23 @@ export default function ProfileScreen() {
             onPress={() => comingSoon('Help & Support')}
             isLast
           />
-        </View>
+        </FadeCard>
 
         {/* ── Data protection badge ── */}
-        <View style={styles.badge}>
+        <FadeCard delay={200} style={styles.badge}>
           <FontAwesome name="shield" size={13} color={Colors.wine} />
           <Text style={styles.badgeText}>
             Your health data is protected and encrypted.
           </Text>
-        </View>
+        </FadeCard>
 
         {/* ── Sign out ── */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut} activeOpacity={0.85}>
-          <FontAwesome name="sign-out" size={16} color="#fff" />
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
+        <FadeCard delay={300}>
+          <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut} activeOpacity={0.85}>
+            <FontAwesome name="sign-out" size={16} color="#fff" />
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+        </FadeCard>
 
         <Text style={styles.version}>Kardia · v1.0.0</Text>
       </ScrollView>

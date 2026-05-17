@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 
 import { useCommunity, type Post } from '@/context/CommunityContext';
 import { Colors, Fonts } from '@/constants/theme';
+import { FadeCard } from '@/components/FadeCard';
 
 // ─── Category pill ────────────────────────────────────────────────────────────
 
@@ -140,14 +141,16 @@ export default function CommunityScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text style={styles.headerEyebrow}>Together We're Stronger</Text>
-            <Text style={styles.headerTitle}>Community</Text>
-            <Text style={styles.headerSub}>
-              Real experiences from mothers navigating maternal health. Tap a post to join the conversation.
-            </Text>
+            <FadeCard delay={0}>
+              <Text style={styles.headerEyebrow}>Together We're Stronger</Text>
+              <Text style={styles.headerTitle}>Community</Text>
+              <Text style={styles.headerSub}>
+                Real experiences from mothers navigating maternal health. Tap a post to join the conversation.
+              </Text>
+            </FadeCard>
 
             {/* ── Search Bar ── */}
-            <View style={styles.searchContainer}>
+            <FadeCard delay={100} style={styles.searchContainer}>
               <FontAwesome name="search" size={16} color={Colors.borderCard} style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
@@ -158,43 +161,49 @@ export default function CommunityScreen() {
                 returnKeyType="search"
                 clearButtonMode="while-editing"
               />
-            </View>
+            </FadeCard>
 
             {/* ── Category Filter ── */}
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterScroll}
-            >
-              {categories.map(cat => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    styles.filterPill,
-                    selectedCategory === cat && styles.filterPillActive
-                  ]}
-                  onPress={() => setSelectedCategory(cat)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[
-                    styles.filterPillText,
-                    selectedCategory === cat && styles.filterPillTextActive
-                  ]}>
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            <FadeCard delay={150}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterScroll}
+              >
+                {categories.map(cat => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[
+                      styles.filterPill,
+                      selectedCategory === cat && styles.filterPillActive
+                    ]}
+                    onPress={() => setSelectedCategory(cat)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[
+                      styles.filterPillText,
+                      selectedCategory === cat && styles.filterPillTextActive
+                    ]}>
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </FadeCard>
           </View>
         }
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item, index }) => (
+          <FadeCard delay={200 + index * 50}>
+            <PostCard post={item} />
+          </FadeCard>
+        )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListFooterComponent={<View style={{ height: 32 }} />}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          <FadeCard delay={200} style={styles.emptyContainer}>
             <FontAwesome name="search" size={32} color={Colors.blush} />
             <Text style={styles.emptyText}>No posts found matching your criteria.</Text>
-          </View>
+          </FadeCard>
         }
       />
     </View>
