@@ -15,15 +15,12 @@ import { getBPStatus } from '@/utils/healthColors';
 
 function bpPlainText(sys: number, dia: number): string {
   if (sys >= 140 || dia >= 90) {
-    return `Your blood pressure of ${sys}/${dia} is above the safe range. Readings at or above 140/90 are classified as Stage 2 hypertension. During and after pregnancy, high blood pressure can affect both your heart and your baby's health. This reading warrants a prompt conversation with your care team.`;
+    return `Your blood pressure of ${sys}/${dia} mmHg meets the ACOG threshold for gestational hypertension. Readings at or above 140/90 require prompt evaluation — contact your care team today. Unmanaged, this can progress to preeclampsia.`;
   }
-  if (sys >= 130 || dia >= 80) {
-    return `Your blood pressure of ${sys}/${dia} is slightly elevated (Stage 1 hypertension). Monitor closely and discuss with your provider.`;
+  if (sys >= 120 || dia >= 80) {
+    return `Your blood pressure of ${sys}/${dia} mmHg is elevated for pregnancy. ACOG recommends monitoring any reading above 120/80 closely during the perinatal period. Log daily and mention this at your next visit.`;
   }
-  if (sys >= 120) {
-    return `Your blood pressure of ${sys}/${dia} is elevated but not yet in the hypertension range. Keep an eye on it and log readings regularly.`;
-  }
-  return `Your blood pressure of ${sys}/${dia} is within a healthy range. Keep up the great work.`;
+  return `Your blood pressure of ${sys}/${dia} mmHg is within the normal range for pregnancy. Keep logging consistently so your care team can spot any trends early.`;
 }
 
 function buildAdvocacyScript(entry: LogEntry): string {
@@ -63,8 +60,12 @@ function EmptyState() {
 export default function HomeScreen() {
   const { logs } = useHealth();
   const [scriptExpanded, setScriptExpanded] = useState(false);
+  const [showMAP,        setShowMAP]        = useState(false);
 
-  const latest = logs[0] ?? null;
+  const latest   = logs[0] ?? null;
+  const mapValue = latest
+    ? Math.round((latest.systolic + 2 * latest.diastolic) / 3)
+    : 0;
 
   return (
     <ScrollView
@@ -93,12 +94,36 @@ export default function HomeScreen() {
                   <View style={styles.readingRow}>
                     <View style={styles.readingMain}>
                       <Text style={styles.bpLabel}>Blood Pressure</Text>
-                      <View style={styles.bpValueRow}>
-                        <Text style={[styles.bpValue, { color: status.color }]}>
-                          {latest.systolic}/{latest.diastolic}
+
+                      {/* Tappable value — toggles between Sys/Dia and MAP */}
+                      <TouchableOpacity
+                        onPress={() => setShowMAP((v) => !v)}
+                        activeOpacity={0.7}
+                        style={styles.bpValueTouchable}
+                      >
+                        <View style={styles.bpValueRow}>
+                          {showMAP ? (
+                            <Text style={[styles.bpValue, { color: status.color }]}>
+                              {mapValue}
+                            </Text>
+                          ) : (
+                            <Text style={[styles.bpValue, { color: status.color }]}>
+                              {latest.systolic}/{latest.diastolic}
+                            </Text>
+                          )}
+                          {/* Swap icon — subtle visual affordance */}
+                          <FontAwesome
+                            name="exchange"
+                            size={13}
+                            color={status.color}
+                            style={styles.bpSwapIcon}
+                          />
+                        </View>
+                        <Text style={styles.bpUnit}>
+                          {showMAP ? 'MAP · Mean Arterial Pressure' : 'mmHg'}
                         </Text>
-                        <Text style={styles.bpUnit}>mmHg</Text>
-                      </View>
+                      </TouchableOpacity>
+
                       <Text style={styles.bpTimestamp}>{latest.date}</Text>
                     </View>
                     {/* Glucose pill */}
@@ -119,14 +144,21 @@ export default function HomeScreen() {
                       <Text style={styles.bpBreakdownNum}>{latest.diastolic}</Text>
                       <Text style={styles.bpBreakdownLbl}>Diastolic</Text>
                     </View>
-                    {latest.a1c !== null && (
-                      <>
-                        <View style={styles.bpDivider} />
-                        <View style={styles.bpBreakdownItem}>
-                          <Text style={styles.bpBreakdownNum}>{latest.a1c}%</Text>
-                          <Text style={styles.bpBreakdownLbl}>A1C</Text>
-                        </View>
-                      </>
+                    <View style={styles.bpDivider} />
+                    {showMAP ? (
+                      <View style={styles.bpBreakdownItem}>
+                        <Text style={[styles.bpBreakdownNum, { color: status.color }]}>
+                          {mapValue}
+                        </Text>
+                        <Text style={styles.bpBreakdownLbl}>MAP</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.bpBreakdownItem}>
+                        <Text style={styles.bpBreakdownNum}>
+                          {latest.a1c !== null ? `${latest.a1c}%` : '—'}
+                        </Text>
+                        <Text style={styles.bpBreakdownLbl}>A1C</Text>
+                      </View>
                     )}
                   </View>
                 </View>
@@ -150,21 +182,21 @@ export default function HomeScreen() {
                     <View style={[styles.infoIndicator, { backgroundColor: status.color }]} />
                     <Text style={styles.infoText}>
                       <Text style={styles.infoBold}>{latest.systolic} (Systolic)</Text>
-                      {' '}— the pressure when your heart beats. Above 140 is high.
+                      {' '}— the pressure when your heart beats. ACOG flags ≥ 140 as gestational hypertension.
                     </Text>
                   </View>
                   <View style={styles.infoRow}>
                     <View style={[styles.infoIndicator, { backgroundColor: status.color }]} />
                     <Text style={styles.infoText}>
                       <Text style={styles.infoBold}>{latest.diastolic} (Diastolic)</Text>
-                      {' '}— the pressure between beats. Above 90 is high.
+                      {' '}— the pressure between beats. ACOG flags ≥ 90 as gestational hypertension.
                     </Text>
                   </View>
                   <View style={styles.infoRow}>
                     <View style={[styles.infoIndicator, { backgroundColor: '#27AE60' }]} />
                     <Text style={styles.infoText}>
-                      <Text style={styles.infoBold}>Healthy range</Text>
-                      {' '}— below 120/80 is ideal for most people.
+                      <Text style={styles.infoBold}>Normal in pregnancy</Text>
+                      {' '}— below 120/80. Monitor daily; trends matter more than single readings.
                     </Text>
                   </View>
                 </View>
@@ -257,8 +289,10 @@ const styles = StyleSheet.create({
   readingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   readingMain: { flex: 1 },
   bpLabel: { fontSize: 12, color: '#999', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 4 },
-  bpValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+  bpValueTouchable: { alignSelf: 'flex-start' },
+  bpValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
   bpValue: { fontSize: 48, fontWeight: '700', lineHeight: 52 },
+  bpSwapIcon: { marginBottom: 10, opacity: 0.55 },
   bpUnit: { fontSize: 14, color: '#999', marginBottom: 8 },
   bpTimestamp: { fontSize: 12, color: '#aaa', marginTop: 2 },
 
