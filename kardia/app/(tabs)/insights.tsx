@@ -79,18 +79,14 @@ export default function InsightsScreen() {
   const chartData = useMemo(() => {
     if (!logs || logs.length === 0) return [];
 
-    const validTimes = logs
-      .map((l) => logMs(l.date))
-      .filter((t) => !isNaN(t));
-    const anchorTime = validTimes.length > 0 ? Math.max(...validTimes) : Date.now();
-
-    let cutoffTime = 0;
+    const now = Date.now();
     const ONE_DAY = 24 * 60 * 60 * 1000;
+    let cutoffTime = 0;
     switch (range) {
-      case '1W': cutoffTime = anchorTime - (7   * ONE_DAY); break;
-      case '1M': cutoffTime = anchorTime - (30  * ONE_DAY); break;
-      case '3M': cutoffTime = anchorTime - (90  * ONE_DAY); break;
-      case '1Y': cutoffTime = anchorTime - (365 * ONE_DAY); break;
+      case '1W': cutoffTime = now - (7   * ONE_DAY); break;
+      case '1M': cutoffTime = now - (30  * ONE_DAY); break;
+      case '3M': cutoffTime = now - (90  * ONE_DAY); break;
+      case '1Y': cutoffTime = now - (365 * ONE_DAY); break;
       case 'ALL': cutoffTime = 0; break;
       default:    cutoffTime = 0;
     }
@@ -248,7 +244,7 @@ export default function InsightsScreen() {
                 data={chartData}
                 width={chartW - 40}
                 height={200}
-                spacing={Math.max(2, Math.floor((chartW - 60) / Math.max(chartData.length - 1, 1)))}
+                spacing={Math.max(2, (chartW - 60) / Math.max(chartData.length - 1, 1))}
                 color={lineColor}
                 thickness={2.5}
                 startFillColor={fillColor}
@@ -511,7 +507,7 @@ const styles = StyleSheet.create({
   pillTextActive: { color: Colors.cream },
 
   // Chart
-  chartWrap:   { paddingHorizontal: 16 },
+  chartWrap:   { paddingHorizontal: 0 },
   hiddenLabel: { opacity: 0, height: 0 },
 
   // Empty state
