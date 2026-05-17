@@ -5,10 +5,12 @@ import {
   TouchableOpacity,
   View,
   Text,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { LineChart } from 'react-native-gifted-charts';
 
 import { useUser } from '@clerk/clerk-expo';
 
@@ -70,6 +72,89 @@ function formatLogDate(dateStr: string): string {
   }
 }
 
+const MONTH_IDX: Record<string, number> = {
+  Jan: 0, Feb: 1, Mar: 2,  Apr: 3,  May: 4,  Jun: 5,
+  Jul: 6, Aug: 7, Sep: 8,  Oct: 9,  Nov: 10, Dec: 11,
+};
+
+function logMs(dateStr: string): number {
+  try {
+    const [datePart, timePart] = dateStr.split(' · ');
+    const dp = datePart.trim().replace(',', '').split(/\s+/);
+    const month = MONTH_IDX[dp[0].slice(0, 3)];
+    const day   = parseInt(dp[1], 10);
+    const year  = parseInt(dp[2], 10);
+    const tp  = timePart.trim().split(/[\s:]+/);
+    let   h   = parseInt(tp[0], 10);
+    const min = parseInt(tp[1], 10);
+    if (tp[2] === 'PM' && h !== 12) h += 12;
+    if (tp[2] === 'AM' && h === 12) h  = 0;
+    if ([month, day, year, h, min].some(isNaN)) return NaN;
+    return new Date(year, month, day, h, min).getTime();
+  } catch { return NaN; }
+}
+
+// ─── Mini Chart ───────────────────────────────────────────────────────────────
+
+function MiniChart({ metric, cardWidth }: { metric: 'bp' | 'glucose'; cardWidth: number }) {
+  const { logs } = useHealth();
+
+  const chartW    = cardWidth - 12; // 6px padding each side
+  const lineColor = metric === 'bp' ? Colors.wine : Colors.burgundy;
+  const fillColor = metric === 'bp' ? '#D4A99A' : '#E8C4B8';
+
+  const chartData = useMemo(() => {
+    if (!logs || logs.length === 0) return [];
+    const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return logs
+      .filter(l => { const t = logMs(l.date); return !isNaN(t) && t >= cutoff; })
+      .slice()
+      .reverse()
+      .map(l => ({
+        value:     metric === 'bp' ? Number(l.systolic) : Number(l.glucose),
+        diastolic: Number(l.diastolic),
+      }))
+      .filter(d => !isNaN(d.value));
+  }, [logs, metric]);
+
+  if (chartData.length < 2) {
+    return (
+      <View style={styles.miniChartPlaceholder}>
+        <View style={styles.miniChartLine} />
+      </View>
+    );
+  }
+
+  const dataMax = Math.max(...chartData.map(d => d.value)) + (metric === 'bp' ? 14 : 18);
+  const spacing = Math.max(2, (chartW - 20) / Math.max(chartData.length - 1, 1));
+
+  return (
+    <LineChart
+      areaChart
+      curved
+      data={chartData}
+      width={chartW}
+      height={55}
+      spacing={spacing}
+      color={lineColor}
+      thickness={2}
+      startFillColor={fillColor}
+      endFillColor={fillColor}
+      startOpacity={0.38}
+      endOpacity={0.01}
+      maxValue={dataMax}
+      noOfSections={2}
+      hideRules
+      hideYAxisText
+      yAxisThickness={0}
+      xAxisThickness={0}
+      hideDataPoints
+      dataPointsRadius={0}
+      xAxisLabelTextStyle={styles.hiddenLabel}
+    />
+  );
+}
+
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EmptyState() {
@@ -91,8 +176,12 @@ export default function HomeScreen() {
   const { top }   = useSafeAreaInsets();
   const { logs }  = useHealth();
   const { user }  = useUser();
+  const { width } = useWindowDimensions();
   const [scriptExpanded, setScriptExpanded] = useState(false);
   const [showMAP,        setShowMAP]        = useState(false);
+
+  // width of each mini chart card: screen - 40 padding - 15 gap, split by 2
+  const miniCardWidth = (width - 40 - 15) / 2;
 
   const timeOfDay = useMemo(() => {
     const h = new Date().getHours();
@@ -178,17 +267,13 @@ export default function HomeScreen() {
 
                   {/* Mini chart cards row */}
                   <View style={styles.miniChartRow}>
-                    <View style={styles.miniChartCard}>
+                    <View style={[styles.miniChartCard, { width: miniCardWidth }]}>
                       <Text style={styles.miniChartLabel}>Blood Pressure</Text>
-                      <View style={styles.miniChartPlaceholder}>
-                        <View style={styles.miniChartLine} />
-                      </View>
+                      <MiniChart metric="bp" cardWidth={miniCardWidth} />
                     </View>
-                    <View style={styles.miniChartCard}>
+                    <View style={[styles.miniChartCard, { width: miniCardWidth }]}>
                       <Text style={styles.miniChartLabel}>Glucose</Text>
-                      <View style={styles.miniChartPlaceholder}>
-                        <View style={styles.miniChartLine} />
-                      </View>
+                      <MiniChart metric="glucose" cardWidth={miniCardWidth} />
                     </View>
                   </View>
 
@@ -391,14 +476,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   miniChartCard: {
-    flex: 1,
     backgroundColor: Colors.ivory,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: Colors.borderSubtle,
     padding: 6,
-    height: 89,
+    overflow: 'hidden',
   },
+  hiddenLabel: { opacity: 0, height: 0 },
   miniChartLabel: {
     fontFamily: Fonts.regular,
     fontSize: 10,
