@@ -203,29 +203,37 @@ export default function HomeScreen() {
                   </View>
 
                   {/* Advocacy Script */}
-                  <TouchableOpacity
-                    style={styles.scriptCard}
-                    onPress={() => setScriptExpanded(!scriptExpanded)}
-                    activeOpacity={0.85}
-                  >
-                    <View style={styles.scriptHeader}>
-                      <View style={styles.scriptTitleRow}>
-                        <View style={styles.scriptDot}>
-                          <View style={styles.scriptDotInner} />
+                  <View style={styles.scriptCard}>
+                    <TouchableOpacity
+                      onPress={() => setScriptExpanded(!scriptExpanded)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.scriptHeader}>
+                        <View style={styles.scriptTitleRow}>
+                          <View style={styles.scriptDot}>
+                            <View style={styles.scriptDotInner} />
+                          </View>
+                          <Text style={styles.scriptTitle}>Advocacy Script</Text>
                         </View>
-                        <Text style={styles.scriptTitle}>Advocacy Script</Text>
+                        <View style={styles.scriptHeaderRight}>
+                          <View style={styles.scriptBadge}>
+                            <Text style={styles.scriptBadgeText}>For your doctor</Text>
+                          </View>
+                          <FontAwesome
+                            name={scriptExpanded ? 'chevron-up' : 'chevron-down'}
+                            size={12}
+                            color="rgba(255,255,255,0.6)"
+                          />
+                        </View>
                       </View>
-                      <View style={styles.scriptBadge}>
-                        <Text style={styles.scriptBadgeText}>For your doctor</Text>
-                      </View>
-                    </View>
+                    </TouchableOpacity>
 
-                    <Text style={styles.scriptText}>
-                      {scriptExpanded
-                        ? buildAdvocacyScript(latest)
-                        : `"Hi, I'm 2 weeks postpartum and my home blood pressure readings have averaged ${latest.systolic}/${latest.diastolic} for the past 5 days, up from my baseline of 118/76.\n\n I'm concerned about postpartum preeclampsia. Can I be seen today, or should I go to the ER?"`}
-                    </Text>
-                  </TouchableOpacity>
+                    {scriptExpanded && (
+                      <Text style={styles.scriptText}>
+                        {buildAdvocacyScript(latest)}
+                      </Text>
+                    )}
+                  </View>
                 </>
               );
             })()}
@@ -467,15 +475,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     paddingTop: 19,
-    paddingBottom: 40,
     marginBottom: 14,
   },
   scriptHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
   },
+  scriptHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   scriptTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   scriptDot: {
     width: 20,
@@ -512,6 +519,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.textLight,
     lineHeight: 22,
+    marginTop: 14,
   },
 
   bottomSpacer: { height: 24 },
